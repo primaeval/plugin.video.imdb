@@ -127,10 +127,24 @@ def title_page(url):
             title = title_match.group(2)
 
         #<span class="lister-lister_item-year text-muted unbold">(2016)</span>
-        title_match = re.search(r'<span class="lister-lister_item-year text-muted unbold">.*?\(([0-9]*?)\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
+        #title_match = re.search(r'<span class="lister-lister_item-year text-muted unbold">.*?\(([0-9]*?)\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
+        title_match = re.search(r'<span class="lister-item-year text-muted unbold">.*?\(([0-9]{4})\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if title_match:
             year = title_match.group(1)
             title_type = "movie"
+            log(year)
+        else:
+            #log(lister_item)
+            pass
+
+        title_match = re.search(r'<span class="lister-item-year text-muted unbold">.*?\(([0-9]{4}).*?\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
+        if title_match:
+            year = title_match.group(1)
+            title_type = "tv_series"
+            log(year)
+        else:
+            #log(lister_item)
+            pass
 
 
         #Episode:</small>\n    <a href="/title/tt4480392/?ref_=adv_li_tt"\n>\'Cue Detective</a>\n    <span class="lister-lister_item-year text-muted unbold">(2015)</span>
@@ -205,7 +219,7 @@ def title_page(url):
                 id = episode_id
             else:
                 meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
-
+        log((title,year))
         if imdbID:
             item = ListItem(label=title,thumbnail=img_url,path=meta_url)
             item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
