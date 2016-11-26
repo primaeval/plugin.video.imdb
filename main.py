@@ -307,7 +307,7 @@ def duplicate_search(name):
 def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "title", "title_type", "user_rating"]
+    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "user_rating"]
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -425,6 +425,15 @@ def edit_search(name):
                 if 'release_date' in params:
                     del params['release_date']
         elif action == 10:
+            sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "user_rating,asc", "user_rating,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+            which = d.select('sort',sort)
+            if which > -1:
+                sort = [sort[x] for x in which]
+                params['sort'] = ",".join(sort)
+            else:
+                if 'sort' in params:
+                    del params['sort']
+        elif action == 11:
             title = params.get('title','')
             title = d.input("Title",title)
             if title:
@@ -432,7 +441,7 @@ def edit_search(name):
             else:
                 if 'title' in params:
                     del params['title']
-        elif action == 11:
+        elif action == 12:
             title_type = params.get('title_type','')
             if title_type:
                 current_types = title_type.split(',') #TODO preselect in Krypton
@@ -444,7 +453,7 @@ def edit_search(name):
             else:
                 if 'title_type' in params:
                     del params['title_type']
-        elif action == 12:
+        elif action == 13:
             user_rating = params.get('user_rating','')
             start = ''
             end = ''
