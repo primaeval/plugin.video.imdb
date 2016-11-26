@@ -1,6 +1,7 @@
 from rpc import RPC
 from xbmcswift2 import Plugin
 from xbmcswift2 import actions
+from xbmcswift2 import ListItem
 import re
 import requests
 import xbmc,xbmcaddon,xbmcvfs,xbmcgui,xbmcvfs
@@ -189,6 +190,7 @@ def title_page(url):
         if certificate_match:
             certificate = certificate_match.group(1)
 
+        vlabel = title
         if imdbID:
             id = imdbID
             if title_type == "tv_series" or title_type == "mini_series":
@@ -202,13 +204,17 @@ def title_page(url):
                 meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
 
         if imdbID:
-            items.append(
-            {
-                'label': title,
-                'path': meta_url,
-                'thumbnail':img_url,
-
-            })
+            item = ListItem(label=title,thumbnail=img_url,path=meta_url)
+            item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
+            'year':year,'mediatype':'movie','rating':rating,'plot': plot,
+            'mpaa': certificate,'cast': cast,'duration': runtime, 'votes': votes})
+            video_streaminfo = {'codec': 'h264'}
+            video_streaminfo['aspect'] = round(1280.0 / 720.0, 2)
+            video_streaminfo['width'] = 1280
+            video_streaminfo['height'] = 720
+            item.add_stream_info('video', video_streaminfo)
+            item.add_stream_info('audio', {'codec': 'aac', 'language': 'en', 'channels': 2})
+            items.append(item)
 
 
     #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
@@ -680,4 +686,4 @@ if __name__ == '__main__':
         #view_mode = int(plugin.get_setting('view_mode'))
         #plugin.set_view_mode(view_mode)
         plugin.set_view_mode(518)
-    plugin.set_content("movies")
+    #plugin.set_content("movies")
