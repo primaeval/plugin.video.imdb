@@ -307,7 +307,7 @@ def duplicate_search(name):
 def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "user_rating"]
+    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "user_rating", "role"]
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -469,6 +469,21 @@ def edit_search(name):
             else:
                 if 'user_rating' in params:
                     del params['user_rating']
+        elif action == 14:
+            crew = []
+            while True:
+                who = d.input("Cast/Crew")
+                if who:
+                    id = find_crew(who)
+                    if id:
+                        crew.append(id)
+                else:
+                    break
+            if crew:
+                params['role'] = ','.join(crew)
+            else:
+                if 'role' in params:
+                    del params['role']
 
         params = {k: v for k, v in params.items() if v}
         kv = ["%s=%s" % (x,params[x]) for x in params]
@@ -477,6 +492,43 @@ def edit_search(name):
         log(url)
         searches[name] = url
     xbmc.executebuiltin('Container.Refresh')
+
+def find_crew(name=''):
+    dialog = xbmcgui.Dialog()
+    if not name:
+        name = dialog.input('Search for crew (actor, director etc)', type=xbmcgui.INPUT_ALPHANUM)
+    dialog.notification('IMDB:','Finding crew details...')
+    if not name:
+        dialog.notification('IMDB:','No name!')
+        return
+    url = "http://www.imdb.com/xml/find?json=1&nr=1&q=%s&nm=on" % urllib.quote_plus(name)
+    r = requests.get(url)
+    json = r.json()
+    crew = []
+
+    if 'name_popular' in json:
+        pop = json['name_popular']
+        for p in pop:
+            crew.append((p['name'],p['id']))
+    if 'name_exact' in json:
+        pop = json['name_exact']
+        for p in pop:
+            crew.append((p['name'],p['id']))
+    if 'name_approx' in json:
+        approx = json['name_approx']
+        for p in approx:
+            crew.append((p['name'],p['id']))
+    if 'name_substring' in json:
+        pop = json['name_substring']
+        for p in pop:
+            crew.append((p['name'],p['id']))
+    names = [item[0] for item in crew]
+    if names:
+        index = dialog.select('Pick crew member',names)
+        id = crew[index][1]
+        return id
+    else:
+        dialog.notification('IMDB:','Nothing Found!')
 
 @plugin.route('/')
 def index():
