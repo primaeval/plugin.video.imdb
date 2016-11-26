@@ -132,7 +132,7 @@ def title_page(url):
         if title_match:
             year = title_match.group(1)
             title_type = "movie"
-            log(year)
+            #log(year)
         else:
             #log(lister_item)
             pass
@@ -141,7 +141,7 @@ def title_page(url):
         if title_match:
             year = title_match.group(1)
             title_type = "tv_series"
-            log(year)
+            #log(year)
         else:
             #log(lister_item)
             pass
@@ -219,7 +219,7 @@ def title_page(url):
                 id = episode_id
             else:
                 meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
-        log((title,year))
+
         if imdbID:
             item = ListItem(label=title,thumbnail=img_url,path=meta_url)
             item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
@@ -237,7 +237,8 @@ def title_page(url):
     #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
     pagination_match = re.search('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
     if pagination_match:
-        next_page = 'http://www.imdb.com/search/title?'+pagination_match.group(1)
+        next_page = 'http://www.imdb.com/search/title?'+pagination_match.group(1).strip('?')
+        log(next_page)
         items.append(
         {
             'label': "[COLOR orange]Next Page >>[/COLOR]",
