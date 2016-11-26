@@ -279,14 +279,13 @@ def duplicate_search(name):
             searches[new_name] = url
             xbmc.executebuiltin('Container.Refresh')
             return
-    
+
 
 @plugin.route('/edit_search/<name>')
 def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    #http://www.imdb.com/search/title?certificates=us:g,us:pg&count=100&countries=at,be&genres=action,adventure&groups=top_100,top_250&languages=hr,nl&num_votes=1,2&production_status=released&title=xx&title_type=feature,tv_movie&user_rating=2.1,9.9
-    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "production_status", "release_date", "title", "title_type", "user_rating"]
+    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "title", "title_type", "user_rating"]
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -300,7 +299,6 @@ def edit_search(name):
     d = xbmcgui.Dialog()
     while True:
         actions = ["%s = %s" % (x,params.get(x,'')) for x in fields]
-        #action = d.select(name,["Name: "+name,"Title","Type","Date","Rating","Votes","Genres","Groups","Certificates","Countries","Languages","Locations","Popularity","Plot","Status","Cast/Crew","Runtime","Sort"])
         action = d.select(name,actions)
         if action < 0:
             return
@@ -318,23 +316,93 @@ def edit_search(name):
             which = d.select('count',count)
             if which > -1:
                 params['count'] = count[which]
-        elif action == 8:
-            date = params.get('release_date','')
+        elif action == 2:
+            countries = ["ar", "au", "at", "be", "br", "bg", "ca", "cn", "co", "cr", "cz", "dk", "fi", "fr", "de", "gr", "hk", "hu", "is", "in", "ir", "ie", "it", "jp", "my", "mx", "nl", "nz", "pk", "pl", "pt", "ro", "ru", "sg", "za", "es", "se", "ch", "th", "gb", "us", "af", "ax", "al", "dz", "as", "ad", "ao", "ai", "aq", "ag", "am", "aw", "az", "bs", "bh", "bd", "bb", "by", "bz", "bj", "bm", "bt", "bo", "bq", "ba", "bw", "bv", "io", "vg", "bn", "bf", "bumm", "bi", "kh", "cm", "cv", "ky", "cf", "td", "cl", "cx", "cc", "km", "cg", "ck", "ci", "hr", "cu", "cy", "cshh", "cd", "dj", "dm", "do", "ddde", "ec", "eg", "sv", "gq", "er", "ee", "et", "fk", "fo", "yucs", "fm", "fj", "gf", "pf", "tf", "ga", "gm", "ge", "gh", "gi", "gl", "gd", "gp", "gu", "gt", "gg", "gn", "gw", "gy", "ht", "hm", "va", "hn", "id", "iq", "im", "il", "jm", "je", "jo", "kz", "ke", "ki", "xko", "xkv", "kw", "kg", "la", "lv", "lb", "ls", "lr", "ly", "li", "lt", "lu", "mo", "mg", "mw", "mv", "ml", "mt", "mh", "mq", "mr", "mu", "yt", "md", "mc", "mn", "me", "ms", "ma", "mz", "mm", "na", "nr", "np", "an", "nc", "ni", "ne", "ng", "nu", "nf", "kp", "vdvn", "mp", "no", "om", "pw", "xpi", "ps", "pa", "pg", "py", "pe", "ph", "pn", "pr", "qa", "mk", "re", "rw", "bl", "sh", "kn", "lc", "mf", "pm", "vc", "ws", "sm", "st", "sa", "sn", "rs", "csxx", "sc", "xsi", "sl", "sk", "si", "sb", "so", "gs", "kr", "suhh", "lk", "sd", "sr", "sj", "sz", "sy", "tw", "tj", "tz", "tl", "tg", "tk", "to", "tt", "tn", "tr", "tm", "tc", "tv", "vi", "ug", "ua", "ae", "um", "uy", "uz", "vu", "ve", "vn", "wf", "xwg", "eh", "ye", "xyu", "zrcd", "zm", "zw"
+    ]
+            which = d.multiselect('Countries',countries)
+            if which:
+                countries = [countries[x] for x in which]
+                params['countries'] = ",".join(countries)
+            else:
+                if 'countries' in params:
+                    del params['countries']
+        elif action == 3:
+            genres = ["action", "adventure", "animation", "biography",  "comedy", "crime", "documentary", "drama", "family", "fantasy", "film_noir", "game_show", "history", "horror", "music", "musical", "mystery", "news", "reality_tv", "romance", "sci_fi", "sport", "talk_show", "thriller", "war", "western"]
+            which = d.multiselect('Genres',genres)
+            if which:
+                genress = [genres[x] for x in which]
+                params['genres'] = ",".join(genress)
+            else:
+                if 'genres' in params:
+                    del params['genres']
+        elif action == 4:
+            groups = ["top_100", "top_250", "top_1000", "now-playing-us", "oscar_winners", "oscar_best_picture_winners", "oscar_best_director_winners", "oscar_nominees", "emmy_winners", "emmy_nominees", "golden_globe_winners", "golden_globe_nominees", "razzie_winners", "razzie_nominees", "national_film_registry", "bottom_100", "bottom_250", "bottom_1000"]
+            which = d.multiselect('groups',groups)
+            if which:
+                groups = [groups[x] for x in which]
+                params['groups'] = ",".join(groups)
+            else:
+                if 'groups' in params:
+                    del params['groups']
+        elif action == 5:
+            languages = ["ar", "bg", "zh", "hr", "nl", "en", "fi", "fr", "de", "el", "he", "hi", "hu", "is", "it", "ja", "ko", "no", "fa", "pl", "pt", "pa", "ro", "ru", "es", "sv", "tr", "uk", "ab", "qac", "guq", "qam", "af", "qas", "ak", "sq", "alg", "ase", "am", "apa", "an", "arc", "arp", "hy", "as", "aii", "ath", "asf", "awa", "ay", "az", "ast", "qbd", "ban", "bm", "eu", "bsc", "be", "bem", "bn", "ber", "bho", "qbi", "qbh", "bs", "bzs", "br", "bfi", "my", "yue", "ca", "km", "qax", "ce", "chr", "chy", "hne", "kw", "co", "cr", "mus", "qal", "crp", "cro", "cs", "da", "prs", "dso", "din", "qaw", "doi", "dyu", "dz", "qbc", "frs", "egy", "eo", "et", "ee", "qbg", "fo", "fil", "qbn", "fon", "fsl", "ff", "fvr", "gd", "gl", "ka", "gsg", "grb", "grc", "kl", "gn", "gu", "gnn", "gup", "ht", "hak", "bgc", "qav", "ha", "haw", "hmn", "qab", "hop", "iba", "qag", "icl", "ins", "id", "iu", "ik", "ga", "jsl", "dyo", "ktz", "qbf", "kea", "kab", "xal", "kn", "kpj", "mjw", "kar", "kk", "kca", "kha", "ki", "rw", "qar", "tlh", "kfa", "kok", "kvk", "khe", "qaq", "kro", "kyw", "qbb", "ku", "kwk", "ky", "lbj", "lad", "lo", "la", "lv", "lif", "ln", "lt", "nds", "lb", "mk", "qbm", "mag", "mai", "mg", "ms", "ml", "pqm", "qap", "mt", "mnc", "cmn", "man", "mni", "mi", "arn", "mr", "mh", "mas", "mls", "myn", "men", "mic", "enm", "nan", "min", "mwl", "lus", "moh", "mn", "moe", "qaf", "mfe", "qbl", "nah", "qba", "nv", "nbf", "nd", "nap", "yrk", "ne", "ncg", "zxx", "non", "nai", "qbk", "nyk", "ny", "oc", "oj", "qaz", "ang", "or", "pap", "qaj", "ps", "paw", "qai", "qah", "fuf", "tsz", "qu", "qya", "raj", "qbj", "rm", "rom", "rtm", "rsl", "qao", "qae", "sm", "sa", "sc", "qay", "sr", "qbo", "srr", "qad", "qau", "sn", "shh", "scn", "sjn", "sd", "si", "sio", "sk", "sl", "so", "son", "snk", "wen", "st", "qbe", "ssp", "srn", "sw", "gsw", "syl", "tl", "tg", "tmh", "ta", "tac", "tt", "te", "qak", "th", "bo", "qan", "tli", "tpi", "to", "ts", "tsc", "tn", "tcy", "tup", "tk", "tyv", "tzo", "qat", "ur", "uz", "vi", "qaa", "was", "cy", "wo", "xh", "sah", "yap", "yi", "yo", "zu" ]
+            which = d.multiselect('languages',languages)
+            if which:
+                languages = [languages[x] for x in which]
+                params['languages'] = ",".join(languages)
+            else:
+                if 'languages' in params:
+                    del params['languages']
+        elif action == 6:
+            num_votes = params.get('num_votes','')
             start = ''
             end = ''
-            if date:
-                start,end= date.split(',')
+            if num_votes:
+                start,end= num_votes.split(',')
+            which = d.select('Number of Votes',['Low','High'])
+            if which == 0:
+                start = d.input("Low",start)
+            elif which == 1:
+                end = d.input("High",end)
+            if start or end:
+                params['num_votes'] = ",".join([start,end])
+            else:
+                if 'num_votes' in params:
+                    del params['num_votes']   
+        elif action == 7:
+            plot = params.get('plot','')
+            plot = d.input("plot",plot)
+            if plot:
+                params['plot'] = plot
+            else:
+                if 'plot' in params:
+                    del params['plot']
+        elif action == 8:
+            production_status = ["released", "post production", "filming", "pre production", "completed", "script", "optioned property", "announced", "treatment outline", "pitch", "turnaround", "abandoned", "delayed", "indefinitely delayed", "active", "unknown"]
+            which = d.multiselect('production_status',production_status)
+            if which:
+                production_status = [production_status[x] for x in which]
+                params['production_status'] = ",".join(production_status)
+            else:
+                if 'production_status' in params:
+                    del params['production_status']
+        elif action == 9:
+            release_date = params.get('release_date','')
+            start = ''
+            end = ''
+            if release_date:
+                start,end= release_date.split(',')
             which = d.select('Release Date',['Start','End'])
             if which == 0:
                 start = d.input("Start",start)
             elif which == 1:
-                end = d.input("Start",end)
+                end = d.input("End",end)
             if start or end:
                 params['release_date'] = ",".join([start,end])
             else:
                 if 'release_date' in params:
-                    del params['release_date']
-        elif action == 9:
+                    del params['release_date']                    
+        elif action == 10:
             title = params.get('title','')
             title = d.input("Title",title)
             if title:
@@ -342,7 +410,7 @@ def edit_search(name):
             else:
                 if 'title' in params:
                     del params['title']
-        elif action == 10:
+        elif action == 11:
             title_type = params.get('title_type','')
             if title_type:
                 current_types = title_type.split(',') #TODO preselect in Krypton
@@ -354,6 +422,22 @@ def edit_search(name):
             else:
                 if 'title_type' in params:
                     del params['title_type']
+        elif action == 12:
+            user_rating = params.get('user_rating','')
+            start = ''
+            end = ''
+            if user_rating:
+                start,end= user_rating.split(',')
+            which = d.select('User Rating',['Low','High'])
+            if which == 0:
+                start = d.input("Low",start)
+            elif which == 1:
+                end = d.input("High",end)
+            if start or end:
+                params['user_rating'] = ",".join([start,end])
+            else:
+                if 'user_rating' in params:
+                    del params['user_rating']
 
         params = {k: v for k, v in params.items() if v}
         kv = ["%s=%s" % (x,params[x]) for x in params]
