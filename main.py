@@ -4,7 +4,7 @@ from xbmcswift2 import actions
 from xbmcswift2 import ListItem
 import re
 import requests
-import xbmc,xbmcaddon,xbmcvfs,xbmcgui,xbmcvfs
+import xbmc,xbmcaddon,xbmcvfs,xbmcgui,xbmcvfs,xbmcplugin
 import xbmcplugin
 import base64
 import random
@@ -15,6 +15,7 @@ import time,datetime
 import threading
 import HTMLParser
 import json
+import sys
 
 import SimpleDownloader as downloader
 
@@ -97,6 +98,8 @@ def execute(url):
 
 @plugin.route('/title_page/<url>')
 def title_page(url):
+    global big_list_view
+    big_list_view = True
     r = requests.get(url, headers=headers)
     html = r.text
     html = HTMLParser.HTMLParser().unescape(html)
@@ -225,7 +228,7 @@ def title_page(url):
         {
             'label': "[COLOR orange]Next Page >>[/COLOR]",
             'path': plugin.url_for('title_page', url=next_page),
-            'thumbnail': 'DefaultNetwork.png',
+            'thumbnail': get_icon_path('nextpage'),
         })
 
     return items
@@ -270,7 +273,7 @@ def add_search():
     name = d.input("Name")
     if not name:
         return
-    url = d.input("URL",'http://www.imdb.com/search/title?count=100&production_status=released&title_type=feature')
+    url = d.input("URL",'http://www.imdb.com/search/title?count=100&user_rating=6.0,&production_status=released&title_type=feature')
     if not url:
         return
     searches[name] = url
@@ -290,8 +293,9 @@ def rename_search(name):
     new_name = d.input("Rename: "+name, name)
     if not new_name:
         return
-    searches[new_name] = url
-    del searches[name]
+    if name != new_name:
+        searches[new_name] = url
+        del searches[name]
     xbmc.executebuiltin('Container.Refresh')
 
 @plugin.route('/duplicate_search/<name>')
@@ -313,7 +317,8 @@ def duplicate_search(name):
 def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "boxoffice_gross_us", "role", "keywords", "boxoffice_gross_us", "runtime","locations","companies"]
+    fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
+
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -330,7 +335,7 @@ def edit_search(name):
         action = d.select(name,actions)
         if action < 0:
             return
-        elif action == 0:
+        elif fields[action] == 'certificates':
             certificates = ["us:g","us:pg","us:pg_13","us:r","us:nc_17","gb:u" ,"gb:pg" ,"gb:12" ,"gb:12a","gb:15" ,"gb:18" ,"gb:r18"]
             which = d.multiselect('Certificates',certificates)
             if which:
@@ -339,12 +344,12 @@ def edit_search(name):
             else:
                 if 'certificates' in params:
                     del params['certificates']
-        elif action == 1:
+        elif fields[action] == 'count':
             count = ["50","100"]
             which = d.select('count',count)
             if which > -1:
                 params['count'] = count[which]
-        elif action == 2:
+        elif fields[action] == 'countries':
             countries = ["ar", "au", "at", "be", "br", "bg", "ca", "cn", "co", "cr", "cz", "dk", "fi", "fr", "de", "gr", "hk", "hu", "is", "in", "ir", "ie", "it", "jp", "my", "mx", "nl", "nz", "pk", "pl", "pt", "ro", "ru", "sg", "za", "es", "se", "ch", "th", "gb", "us", "af", "ax", "al", "dz", "as", "ad", "ao", "ai", "aq", "ag", "am", "aw", "az", "bs", "bh", "bd", "bb", "by", "bz", "bj", "bm", "bt", "bo", "bq", "ba", "bw", "bv", "io", "vg", "bn", "bf", "bumm", "bi", "kh", "cm", "cv", "ky", "cf", "td", "cl", "cx", "cc", "km", "cg", "ck", "ci", "hr", "cu", "cy", "cshh", "cd", "dj", "dm", "do", "ddde", "ec", "eg", "sv", "gq", "er", "ee", "et", "fk", "fo", "yucs", "fm", "fj", "gf", "pf", "tf", "ga", "gm", "ge", "gh", "gi", "gl", "gd", "gp", "gu", "gt", "gg", "gn", "gw", "gy", "ht", "hm", "va", "hn", "id", "iq", "im", "il", "jm", "je", "jo", "kz", "ke", "ki", "xko", "xkv", "kw", "kg", "la", "lv", "lb", "ls", "lr", "ly", "li", "lt", "lu", "mo", "mg", "mw", "mv", "ml", "mt", "mh", "mq", "mr", "mu", "yt", "md", "mc", "mn", "me", "ms", "ma", "mz", "mm", "na", "nr", "np", "an", "nc", "ni", "ne", "ng", "nu", "nf", "kp", "vdvn", "mp", "no", "om", "pw", "xpi", "ps", "pa", "pg", "py", "pe", "ph", "pn", "pr", "qa", "mk", "re", "rw", "bl", "sh", "kn", "lc", "mf", "pm", "vc", "ws", "sm", "st", "sa", "sn", "rs", "csxx", "sc", "xsi", "sl", "sk", "si", "sb", "so", "gs", "kr", "suhh", "lk", "sd", "sr", "sj", "sz", "sy", "tw", "tj", "tz", "tl", "tg", "tk", "to", "tt", "tn", "tr", "tm", "tc", "tv", "vi", "ug", "ua", "ae", "um", "uy", "uz", "vu", "ve", "vn", "wf", "xwg", "eh", "ye", "xyu", "zrcd", "zm", "zw"
     ]
             which = d.multiselect('Countries',countries)
@@ -354,7 +359,7 @@ def edit_search(name):
             else:
                 if 'countries' in params:
                     del params['countries']
-        elif action == 3:
+        elif fields[action] == 'genres':
             genres = ["action", "adventure", "animation", "biography",  "comedy", "crime", "documentary", "drama", "family", "fantasy", "film_noir", "game_show", "history", "horror", "music", "musical", "mystery", "news", "reality_tv", "romance", "sci_fi", "sport", "talk_show", "thriller", "war", "western"]
             which = d.multiselect('Genres',genres)
             if which:
@@ -363,7 +368,7 @@ def edit_search(name):
             else:
                 if 'genres' in params:
                     del params['genres']
-        elif action == 4:
+        elif fields[action] == 'groups':
             groups = ["top_100", "top_250", "top_1000", "now-playing-us", "oscar_winners", "oscar_best_picture_winners", "oscar_best_director_winners", "oscar_nominees", "emmy_winners", "emmy_nominees", "golden_globe_winners", "golden_globe_nominees", "razzie_winners", "razzie_nominees", "national_film_registry", "bottom_100", "bottom_250", "bottom_1000"]
             which = d.multiselect('groups',groups)
             if which:
@@ -372,7 +377,7 @@ def edit_search(name):
             else:
                 if 'groups' in params:
                     del params['groups']
-        elif action == 5:
+        elif fields[action] == 'languages':
             languages = ["ar", "bg", "zh", "hr", "nl", "en", "fi", "fr", "de", "el", "he", "hi", "hu", "is", "it", "ja", "ko", "no", "fa", "pl", "pt", "pa", "ro", "ru", "es", "sv", "tr", "uk", "ab", "qac", "guq", "qam", "af", "qas", "ak", "sq", "alg", "ase", "am", "apa", "an", "arc", "arp", "hy", "as", "aii", "ath", "asf", "awa", "ay", "az", "ast", "qbd", "ban", "bm", "eu", "bsc", "be", "bem", "bn", "ber", "bho", "qbi", "qbh", "bs", "bzs", "br", "bfi", "my", "yue", "ca", "km", "qax", "ce", "chr", "chy", "hne", "kw", "co", "cr", "mus", "qal", "crp", "cro", "cs", "da", "prs", "dso", "din", "qaw", "doi", "dyu", "dz", "qbc", "frs", "egy", "eo", "et", "ee", "qbg", "fo", "fil", "qbn", "fon", "fsl", "ff", "fvr", "gd", "gl", "ka", "gsg", "grb", "grc", "kl", "gn", "gu", "gnn", "gup", "ht", "hak", "bgc", "qav", "ha", "haw", "hmn", "qab", "hop", "iba", "qag", "icl", "ins", "id", "iu", "ik", "ga", "jsl", "dyo", "ktz", "qbf", "kea", "kab", "xal", "kn", "kpj", "mjw", "kar", "kk", "kca", "kha", "ki", "rw", "qar", "tlh", "kfa", "kok", "kvk", "khe", "qaq", "kro", "kyw", "qbb", "ku", "kwk", "ky", "lbj", "lad", "lo", "la", "lv", "lif", "ln", "lt", "nds", "lb", "mk", "qbm", "mag", "mai", "mg", "ms", "ml", "pqm", "qap", "mt", "mnc", "cmn", "man", "mni", "mi", "arn", "mr", "mh", "mas", "mls", "myn", "men", "mic", "enm", "nan", "min", "mwl", "lus", "moh", "mn", "moe", "qaf", "mfe", "qbl", "nah", "qba", "nv", "nbf", "nd", "nap", "yrk", "ne", "ncg", "zxx", "non", "nai", "qbk", "nyk", "ny", "oc", "oj", "qaz", "ang", "or", "pap", "qaj", "ps", "paw", "qai", "qah", "fuf", "tsz", "qu", "qya", "raj", "qbj", "rm", "rom", "rtm", "rsl", "qao", "qae", "sm", "sa", "sc", "qay", "sr", "qbo", "srr", "qad", "qau", "sn", "shh", "scn", "sjn", "sd", "si", "sio", "sk", "sl", "so", "son", "snk", "wen", "st", "qbe", "ssp", "srn", "sw", "gsw", "syl", "tl", "tg", "tmh", "ta", "tac", "tt", "te", "qak", "th", "bo", "qan", "tli", "tpi", "to", "ts", "tsc", "tn", "tcy", "tup", "tk", "tyv", "tzo", "qat", "ur", "uz", "vi", "qaa", "was", "cy", "wo", "xh", "sah", "yap", "yi", "yo", "zu" ]
             which = d.multiselect('languages',languages)
             if which:
@@ -381,7 +386,7 @@ def edit_search(name):
             else:
                 if 'languages' in params:
                     del params['languages']
-        elif action == 6:
+        elif fields[action] == 'num_votes':
             num_votes = params.get('num_votes','')
             start = ''
             end = ''
@@ -397,7 +402,7 @@ def edit_search(name):
             else:
                 if 'num_votes' in params:
                     del params['num_votes']
-        elif action == 7:
+        elif fields[action] == 'plot':
             plot = params.get('plot','')
             plot = d.input("plot",plot)
             if plot:
@@ -405,7 +410,7 @@ def edit_search(name):
             else:
                 if 'plot' in params:
                     del params['plot']
-        elif action == 8:
+        elif fields[action] == 'production_status':
             production_status = ["released", "post production", "filming", "pre production", "completed", "script", "optioned property", "announced", "treatment outline", "pitch", "turnaround", "abandoned", "delayed", "indefinitely delayed", "active", "unknown"]
             which = d.multiselect('production_status',production_status)
             if which:
@@ -414,7 +419,7 @@ def edit_search(name):
             else:
                 if 'production_status' in params:
                     del params['production_status']
-        elif action == 9:
+        elif fields[action] == 'release_date':
             release_date = params.get('release_date','')
             start = ''
             end = ''
@@ -430,7 +435,7 @@ def edit_search(name):
             else:
                 if 'release_date' in params:
                     del params['release_date']
-        elif action == 10:
+        elif fields[action] == 'sort':
             sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
             which = d.select('sort',sort)
             if which > -1:
@@ -438,7 +443,7 @@ def edit_search(name):
             else:
                 if 'sort' in params:
                     del params['sort']
-        elif action == 11:
+        elif fields[action] == 'title':
             title = params.get('title','')
             title = d.input("Title",title)
             if title:
@@ -446,7 +451,7 @@ def edit_search(name):
             else:
                 if 'title' in params:
                     del params['title']
-        elif action == 12:
+        elif fields[action] == 'title_type':
             title_type = params.get('title_type','')
             if title_type:
                 current_types = title_type.split(',') #TODO preselect in Krypton
@@ -458,7 +463,7 @@ def edit_search(name):
             else:
                 if 'title_type' in params:
                     del params['title_type']
-        elif action == 13:
+        elif fields[action] == 'boxoffice_gross_us':
             boxoffice_gross_us = params.get('boxoffice_gross_us','')
             start = ''
             end = ''
@@ -474,7 +479,7 @@ def edit_search(name):
             else:
                 if 'boxoffice_gross_us' in params:
                     del params['boxoffice_gross_us']
-        elif action == 14:
+        elif fields[action] == 'role':
             crew = []
             while True:
                 who = d.input("Cast/Crew")
@@ -489,7 +494,7 @@ def edit_search(name):
             else:
                 if 'role' in params:
                     del params['role']
-        elif action == 15:
+        elif fields[action] == 'keywords':
             keywords = []
             while True:
                 who = d.input("Keywords")
@@ -504,7 +509,7 @@ def edit_search(name):
             else:
                 if 'keywords' in params:
                     del params['keywords']
-        elif action == 16:
+        elif fields[action] == 'boxoffice_gross_us':
             boxoffice_gross_us = params.get('boxoffice_gross_us','')
             start = ''
             end = ''
@@ -520,7 +525,7 @@ def edit_search(name):
             else:
                 if 'boxoffice_gross_us' in params:
                     del params['boxoffice_gross_us']
-        elif action == 17:
+        elif fields[action] == 'runtime':
             runtime = params.get('runtime','')
             start = ''
             end = ''
@@ -536,7 +541,7 @@ def edit_search(name):
             else:
                 if 'runtime' in params:
                     del params['runtime']
-        elif action == 18:
+        elif fields[action] == 'locations':
             locations = params.get('locations','')
             locations = d.input("locations",locations)
             if locations:
@@ -544,7 +549,7 @@ def edit_search(name):
             else:
                 if 'locations' in params:
                     del params['locations']
-        elif action == 19:
+        elif fields[action] == 'companies':
             companies = params.get('companies','')
             companies = d.input("companies",companies)
             if companies:
@@ -552,6 +557,22 @@ def edit_search(name):
             else:
                 if 'companies' in params:
                     del params['companies']
+        elif fields[action] == 'user_rating':
+            user_rating = params.get('user_rating','')
+            start = ''
+            end = ''
+            if user_rating:
+                start,end= user_rating.split(',')
+            which = d.select('User Rating',['Low','High'])
+            if which == 0:
+                start = d.input("Low",start)
+            elif which == 1:
+                end = d.input("High",end)
+            if start or end:
+                params['user_rating'] = ",".join([start,end])
+            else:
+                if 'user_rating' in params:
+                    del params['user_rating']
 
         params = {k: v for k, v in params.items() if v}
         kv = ["%s=%s" % (x,params[x]) for x in params]
@@ -656,21 +677,21 @@ def index():
 
     items.append(
     {
-        'label': "Add Search",
+        'label': "[COLOR dimgray]Add Search[/COLOR]",
         'path': plugin.url_for('add_search'),
         'thumbnail':get_icon_path('settings'),
 
     })
     items.append(
     {
-        'label': "Export Searches",
+        'label': "[COLOR dimgray]Export Searches[/COLOR]",
         'path': plugin.url_for('export_searches'),
         'thumbnail':get_icon_path('settings'),
 
     })
     items.append(
     {
-        'label': "Import Searches",
+        'label': "[COLOR dimgray]Import Searches[/COLOR]",
         'path': plugin.url_for('import_searches'),
         'thumbnail':get_icon_path('settings'),
 
@@ -683,7 +704,8 @@ if __name__ == '__main__':
 
     plugin.run()
     if big_list_view == True:
-        #view_mode = int(plugin.get_setting('view_mode'))
-        #plugin.set_view_mode(view_mode)
-        plugin.set_view_mode(518)
-    #plugin.set_content("movies")
+        view_mode = int(plugin.get_setting('view'))
+        if view_mode:
+            plugin.set_view_mode(view_mode)
+            plugin.set_content("episodes")
+            #xbmcplugin.setContent(int(sys.argv[1]), 'movies')

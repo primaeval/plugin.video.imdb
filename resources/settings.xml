@@ -1,7 +1,7 @@
 <settings>
 <category label="Basic">
 <setting id="english" label="English Titles" type="bool" default="false" />
-
+<setting label="View Mode ID" type="number" id="view" default=""/>
 </category>
 
 </settings>
