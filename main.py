@@ -1,5 +1,6 @@
 from rpc import RPC
 from xbmcswift2 import Plugin
+from xbmcswift2 import actions
 import re
 import requests
 import xbmc,xbmcaddon,xbmcvfs,xbmcgui
@@ -91,7 +92,7 @@ def play(url):
 @plugin.route('/execute/<url>')
 def execute(url):
     xbmc.executebuiltin(url)
-    
+
 @plugin.route('/title_page/<url>')
 def title_page(url):
     r = requests.get(url, headers=headers)
@@ -174,7 +175,7 @@ def title_page(url):
         runtime = ''
         runtime_match = re.search(r'class="runtime">(.+?) min</span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if runtime_match:
-            runtime = int(runtime_match.group(1)) * 60
+            runtime = int(re.sub(',','',runtime_match.group(1))) * 60
 
         sort = ''
         #sort_match = re.search(r'<span class="sort"><span title="(.+?)"', lister_item, flags=(re.DOTALL | re.MULTILINE))
@@ -186,7 +187,7 @@ def title_page(url):
         certificate_match = re.search(r'<span class="certificate">(.*?)</span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if certificate_match:
             certificate = certificate_match.group(1)
-            
+
         if imdbID:
             id = imdbID
             if title_type == "tv_series" or title_type == "mini_series":
@@ -197,7 +198,7 @@ def title_page(url):
                 meta_url = "plugin://plugin.video.imdbsearch/?action=episode&imdb_id=%s&episode_id=%s&title=%s" % (imdbID,episode_id,vlabel)
                 id = episode_id
             else:
-                meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID            
+                meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
 
         if imdbID:
             items.append(
@@ -218,25 +219,25 @@ def title_page(url):
             'label': "[COLOR orange]Next Page >>[/COLOR]",
             'path': plugin.url_for('title_page', url=next_page),
             'thumbnail': 'DefaultNetwork.png',
-        })        
+        })
 
     return items
 
-    
+
 @plugin.route('/feature')
 def feature():
-    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=feature'    
+    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=feature'
     return title_page(url)
-    
-    
+
+
 @plugin.route('/tv_movie')
 def tv_movie():
-    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=tv_movie'    
+    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=tv_movie'
     return title_page(url)
 
 @plugin.route('/add_search')
 def add_search():
-    searches = plugin.get_storage('searches')    
+    searches = plugin.get_storage('searches')
     d = xbmcgui.Dialog()
     name = d.input("Name")
     if not name:
@@ -245,10 +246,44 @@ def add_search():
     if not url:
         return
     searches[name] = url
+    xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/remove_search/<name>')
+def remove_search(name):
+    searches = plugin.get_storage('searches')
+    del searches[name]
+    xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/rename_search/<name>')
+def rename_search(name):
+    searches = plugin.get_storage('searches')
+    url = searches[name]
+    d = xbmcgui.Dialog()
+    new_name = d.input("Rename: "+name, name)
+    if not new_name:
+        return
+    searches[new_name] = url
+    del searches[name]
+    xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/duplicate_search/<name>')
+def duplicate_search(name):
+    searches = plugin.get_storage('searches')
+    url = searches[name]
+    d = xbmcgui.Dialog()
+    while True:
+        new_name = d.input("Duplicate: "+name, name)
+        if not new_name:
+            return
+        if name != new_name:
+            searches[new_name] = url
+            xbmc.executebuiltin('Container.Refresh')
+            return
     
+
 @plugin.route('/edit_search/<name>')
 def edit_search(name):
-    searches = plugin.get_storage('searches')  
+    searches = plugin.get_storage('searches')
     url = searches[name]
     #http://www.imdb.com/search/title?certificates=us:g,us:pg&count=100&countries=at,be&genres=action,adventure&groups=top_100,top_250&languages=hr,nl&num_votes=1,2&production_status=released&title=xx&title_type=feature,tv_movie&user_rating=2.1,9.9
     fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "production_status", "release_date", "title", "title_type", "user_rating"]
@@ -264,12 +299,41 @@ def edit_search(name):
         head = url
     d = xbmcgui.Dialog()
     while True:
-        actions = ["%s=%s" % (x,params.get(x,'')) for x in fields]
+        actions = ["%s = %s" % (x,params.get(x,'')) for x in fields]
         #action = d.select(name,["Name: "+name,"Title","Type","Date","Rating","Votes","Genres","Groups","Certificates","Countries","Languages","Locations","Popularity","Plot","Status","Cast/Crew","Runtime","Sort"])
         action = d.select(name,actions)
         if action < 0:
             return
-            
+        elif action == 0:
+            certificates = ["us:g","us:pg","us:pg_13","us:r","us:nc_17","gb:u" ,"gb:pg" ,"gb:12" ,"gb:12a","gb:15" ,"gb:18" ,"gb:r18"]
+            which = d.multiselect('Certificates',certificates)
+            if which:
+                certificates = [certificates[x] for x in which]
+                params['certificates'] = ",".join(certificates)
+            else:
+                if 'certificates' in params:
+                    del params['certificates']
+        elif action == 1:
+            count = ["50","100"]
+            which = d.select('count',count)
+            if which > -1:
+                params['count'] = count[which]
+        elif action == 8:
+            date = params.get('release_date','')
+            start = ''
+            end = ''
+            if date:
+                start,end= date.split(',')
+            which = d.select('Release Date',['Start','End'])
+            if which == 0:
+                start = d.input("Start",start)
+            elif which == 1:
+                end = d.input("Start",end)
+            if start or end:
+                params['release_date'] = ",".join([start,end])
+            else:
+                if 'release_date' in params:
+                    del params['release_date']
         elif action == 9:
             title = params.get('title','')
             title = d.input("Title",title)
@@ -290,38 +354,25 @@ def edit_search(name):
             else:
                 if 'title_type' in params:
                     del params['title_type']
-        elif action == 8:
-            date = params.get('release_date','')
-            start = ''
-            end = ''
-            if date:
-                start,end= date.split(',')
-            which = d.select('Release Date',['Start','End'])
-            if which == 0:
-                start = d.input("Start",start)
-            elif which == 1:
-                end = d.input("Start",end)
-            if start or end:
-                params['release_date'] = ",".join([start,end])
-            else:
-                if 'release_date' in params:
-                    del params['release_date']
-                    
-        params = {k: v for k, v in params.items() if v}    
+
+        params = {k: v for k, v in params.items() if v}
         kv = ["%s=%s" % (x,params[x]) for x in params]
         tail = '&'.join(kv)
         url = head+"?"+tail
         log(url)
-        searches[name] = url 
-        xbmc.executebuiltin('Container.Refresh')
-    
+        searches[name] = url
+    xbmc.executebuiltin('Container.Refresh')
+
 @plugin.route('/')
 def index():
     searches = plugin.get_storage('searches')
     items = []
     for search in searches:
         context_items = []
-        context_items.append(('[COLOR yellow]Edit[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('edit_search', name=search))))    
+        context_items.append(('[COLOR yellow]Edit[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('edit_search', name=search))))
+        context_items.append(('[COLOR yellow]Rename[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('rename_search', name=search))))
+        context_items.append(('[COLOR yellow]Remove[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('remove_search', name=search))))
+        context_items.append(('[COLOR yellow]Duplicate[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('duplicate_search', name=search))))
         items.append(
         {
             'label': search,
@@ -329,15 +380,15 @@ def index():
             'thumbnail':get_icon_path('search'),
             'context_menu': context_items,
         })
-    
+
     items.append(
     {
         'label': "Add Search",
         'path': plugin.url_for('add_search'),
         'thumbnail':get_icon_path('settings'),
 
-    })    
-    
+    })
+
     items.append(
     {
         'label': "Feature Movies",
