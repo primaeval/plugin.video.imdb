@@ -1,0 +1,7 @@
+<settings>
+<category label="Basic">
+<setting id="english" label="English Titles" type="bool" default="false" />
+
+</category>
+
+</settings>
