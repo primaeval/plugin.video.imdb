@@ -24,8 +24,8 @@ big_list_view = False
 if plugin.get_setting('english') == 'true':
     headers={
     'User-Agent' : 'Mozilla/5.0 (Windows NT 6.1; rv:50.0) Gecko/20100101 Firefox/50.0',
-    'Accept-Language' : 'en-GB,en;q=0.5',
-    }
+    'Accept-Language' : 'en-US,en;q=0.5',
+    "X-Forwarded-For": "54.239.17.118"}
 else:
     headers={}
 
@@ -211,7 +211,7 @@ def title_page(url):
             })
 
 
-    #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&user_rating=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
+    #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
     pagination_match = re.search('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
     if pagination_match:
         next_page = 'http://www.imdb.com/search/title?'+pagination_match.group(1)
@@ -307,7 +307,7 @@ def duplicate_search(name):
 def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "user_rating", "role"]
+    fields = ["certificates", "count", "countries", "genres", "groups", "languages", "num_votes", "plot", "production_status", "release_date", "sort", "title", "title_type", "boxoffice_gross_us", "role", "keywords", "boxoffice_gross_us", "runtime","locations","companies"]
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -425,11 +425,10 @@ def edit_search(name):
                 if 'release_date' in params:
                     del params['release_date']
         elif action == 10:
-            sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "user_rating,asc", "user_rating,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+            sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
             which = d.select('sort',sort)
             if which > -1:
-                sort = [sort[x] for x in which]
-                params['sort'] = ",".join(sort)
+                params['sort'] = sort[which]
             else:
                 if 'sort' in params:
                     del params['sort']
@@ -454,21 +453,21 @@ def edit_search(name):
                 if 'title_type' in params:
                     del params['title_type']
         elif action == 13:
-            user_rating = params.get('user_rating','')
+            boxoffice_gross_us = params.get('boxoffice_gross_us','')
             start = ''
             end = ''
-            if user_rating:
-                start,end= user_rating.split(',')
+            if boxoffice_gross_us:
+                start,end= boxoffice_gross_us.split(',')
             which = d.select('User Rating',['Low','High'])
             if which == 0:
                 start = d.input("Low",start)
             elif which == 1:
                 end = d.input("High",end)
             if start or end:
-                params['user_rating'] = ",".join([start,end])
+                params['boxoffice_gross_us'] = ",".join([start,end])
             else:
-                if 'user_rating' in params:
-                    del params['user_rating']
+                if 'boxoffice_gross_us' in params:
+                    del params['boxoffice_gross_us']
         elif action == 14:
             crew = []
             while True:
@@ -484,6 +483,69 @@ def edit_search(name):
             else:
                 if 'role' in params:
                     del params['role']
+        elif action == 15:
+            keywords = []
+            while True:
+                who = d.input("Keywords")
+                if who:
+                    id = find_keywords(who)
+                    if id:
+                        keywords.append(id)
+                else:
+                    break
+            if keywords:
+                params['keywords'] = ','.join(keywords)
+            else:
+                if 'keywords' in params:
+                    del params['keywords']
+        elif action == 16:
+            boxoffice_gross_us = params.get('boxoffice_gross_us','')
+            start = ''
+            end = ''
+            if boxoffice_gross_us:
+                start,end= boxoffice_gross_us.split(',')
+            which = d.select('Box Office Gross US',['Low','High'])
+            if which == 0:
+                start = d.input("Low",start)
+            elif which == 1:
+                end = d.input("High",end)
+            if start or end:
+                params['boxoffice_gross_us'] = ",".join([start,end])
+            else:
+                if 'boxoffice_gross_us' in params:
+                    del params['boxoffice_gross_us']
+        elif action == 17:
+            runtime = params.get('runtime','')
+            start = ''
+            end = ''
+            if runtime:
+                start,end= runtime.split(',')
+            which = d.select('Box Office Gross US',['Low','High'])
+            if which == 0:
+                start = d.input("Low",start)
+            elif which == 1:
+                end = d.input("High",end)
+            if start or end:
+                params['runtime'] = ",".join([start,end])
+            else:
+                if 'runtime' in params:
+                    del params['runtime']
+        elif action == 18:
+            locations = params.get('locations','')
+            locations = d.input("locations",locations)
+            if locations:
+                params['locations'] = locations
+            else:
+                if 'locations' in params:
+                    del params['locations']
+        elif action == 19:
+            companies = params.get('companies','')
+            companies = d.input("companies",companies)
+            if companies:
+                params['companies'] = companies
+            else:
+                if 'companies' in params:
+                    del params['companies']
 
         params = {k: v for k, v in params.items() if v}
         kv = ["%s=%s" % (x,params[x]) for x in params]
@@ -509,24 +571,62 @@ def find_crew(name=''):
     if 'name_popular' in json:
         pop = json['name_popular']
         for p in pop:
-            crew.append((p['name'],p['id']))
+            crew.append(("[COLOR yellow]%s[/COLOR]" % p['name'],p['id']))
     if 'name_exact' in json:
         pop = json['name_exact']
         for p in pop:
-            crew.append((p['name'],p['id']))
+            crew.append(("[COLOR green]%s[/COLOR]" % p['name'],p['id']))
     if 'name_approx' in json:
         approx = json['name_approx']
         for p in approx:
-            crew.append((p['name'],p['id']))
+            crew.append(("[COLOR orange]%s[/COLOR]" % p['name'],p['id']))
     if 'name_substring' in json:
         pop = json['name_substring']
         for p in pop:
-            crew.append((p['name'],p['id']))
+            crew.append(("[COLOR red]%s[/COLOR]" % p['name'],p['id']))
     names = [item[0] for item in crew]
     if names:
         index = dialog.select('Pick crew member',names)
-        id = crew[index][1]
-        return id
+        if index > -1:
+            id = crew[index][1]
+            return id
+    else:
+        dialog.notification('IMDB:','Nothing Found!')
+
+def find_keywords(keyword=''):
+    dialog = xbmcgui.Dialog()
+    if not keyword:
+        keyword = dialog.input('Search for keyword', type=xbmcgui.INPUT_ALPHANUM)
+    dialog.notification('IMDB:','Finding keyword matches...')
+    if not keyword:
+        dialog.notification('IMDB:','No keyword!')
+        return
+    url = "http://www.imdb.com/xml/find?json=1&nr=1&q=%s&kw=on" % urllib.quote_plus(keyword)
+    r = requests.get(url)
+    json = r.json()
+    keywords = []
+    if 'keyword_popular' in json:
+        pop = json['keyword_popular']
+        for p in pop:
+            keywords.append((p['description'],p['keyword']))
+    if 'keyword_exact' in json:
+        pop = json['keyword_exact']
+        for p in pop:
+            keywords.append((p['description'],p['keyword']))
+    if 'keyword_approx' in json:
+        approx = json['keyword_approx']
+        for p in approx:
+            keywords.append((p['description'],p['keyword']))
+    if 'keyword_substring' in json:
+        approx = json['keyword_substring']
+        for p in approx:
+            keywords.append((p['description'],p['keyword']))
+    names = [item[0] for item in keywords]
+    if keywords:
+        index = dialog.select('Pick keywords member',names)
+        if index > -1:
+            id = keywords[index][1]
+            return  id
     else:
         dialog.notification('IMDB:','Nothing Found!')
 
