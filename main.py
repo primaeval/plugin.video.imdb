@@ -3,7 +3,7 @@ from xbmcswift2 import Plugin
 from xbmcswift2 import actions
 import re
 import requests
-import xbmc,xbmcaddon,xbmcvfs,xbmcgui
+import xbmc,xbmcaddon,xbmcvfs,xbmcgui,xbmcvfs
 import xbmcplugin
 import base64
 import random
@@ -13,6 +13,7 @@ import sqlite3
 import time,datetime
 import threading
 import HTMLParser
+import json
 
 import SimpleDownloader as downloader
 
@@ -235,6 +236,27 @@ def tv_movie():
     url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=tv_movie'
     return title_page(url)
 
+@plugin.route('/export_searches')
+def export_searches():
+    searches = plugin.get_storage('searches')
+    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb/searches.json","wb")
+    s = dict((x,searches[x]) for x in searches)
+    j = json.dumps(s,indent=2)
+    f.write(j)
+    f.close()
+    xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/import_searches')
+def import_searches():
+    searches = plugin.get_storage('searches')
+    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb/searches.json","rb")
+    j = f.read()
+    s = json.loads(j)
+    f.close()
+    for name in s:
+        searches[name] = s[name]
+    xbmc.executebuiltin('Container.Refresh')
+
 @plugin.route('/add_search')
 def add_search():
     searches = plugin.get_storage('searches')
@@ -368,7 +390,7 @@ def edit_search(name):
                 params['num_votes'] = ",".join([start,end])
             else:
                 if 'num_votes' in params:
-                    del params['num_votes']   
+                    del params['num_votes']
         elif action == 7:
             plot = params.get('plot','')
             plot = d.input("plot",plot)
@@ -401,7 +423,7 @@ def edit_search(name):
                 params['release_date'] = ",".join([start,end])
             else:
                 if 'release_date' in params:
-                    del params['release_date']                    
+                    del params['release_date']
         elif action == 10:
             title = params.get('title','')
             title = d.input("Title",title)
@@ -472,19 +494,18 @@ def index():
         'thumbnail':get_icon_path('settings'),
 
     })
-
     items.append(
     {
-        'label': "Feature Movies",
-        'path': plugin.url_for('feature'),
-        'thumbnail':get_icon_path('movies'),
+        'label': "Export Searches",
+        'path': plugin.url_for('export_searches'),
+        'thumbnail':get_icon_path('settings'),
 
     })
     items.append(
     {
-        'label': "TV Movies",
-        'path': plugin.url_for('tv_movie'),
-        'thumbnail':get_icon_path('movies'),
+        'label': "Import Searches",
+        'path': plugin.url_for('import_searches'),
+        'thumbnail':get_icon_path('settings'),
 
     })
     return items
