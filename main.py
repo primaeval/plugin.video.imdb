@@ -349,6 +349,13 @@ def duplicate_search(name):
             xbmc.executebuiltin('Container.Refresh')
             return
 
+@plugin.route('/browse_search/<name>')
+def browse_search(name):
+    searches = plugin.get_storage('searches')
+    url = searches[name]
+    url = 'Container.Update(%s,replace)' % plugin.url_for('browse',url=url)
+    xbmc.executebuiltin(url)
+    #xbmc.executebuiltin("RunPlugin(%s)" % plugin.url_for('browse',url=url))
 
 @plugin.route('/edit_search/<name>')
 def edit_search(name):
@@ -1126,6 +1133,7 @@ def index():
         context_items.append(('[COLOR yellow]Rename[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('rename_search', name=search))))
         context_items.append(('[COLOR yellow]Remove[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('remove_search', name=search))))
         context_items.append(('[COLOR yellow]Duplicate[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('duplicate_search', name=search))))
+        context_items.append(('[COLOR yellow]Browse[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('browse_search', name=search))))
         items.append(
         {
             'label': search,
