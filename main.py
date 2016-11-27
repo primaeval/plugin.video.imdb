@@ -130,12 +130,14 @@ def title_page(url):
             #log(lister_item)
             pass
 
+        info_type = ''
         #<span class="lister-lister_item-year text-muted unbold">(2016)</span>
         #title_match = re.search(r'<span class="lister-lister_item-year text-muted unbold">.*?\(([0-9]*?)\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         title_match = re.search(r'<span class="lister-item-year text-muted unbold">.*?\(([0-9]{4})\)<\/span>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if title_match:
             year = title_match.group(1)
             title_type = "movie"
+            info_type = 'extendedinfo'
             #log(year)
         else:
             #log(lister_item)
@@ -145,6 +147,7 @@ def title_page(url):
             if title_match:
                 year = title_match.group(1)
                 title_type = "tv_series"
+                info_type = 'extendedtvinfo'
                 #log(year)
             else:
                 #log(lister_item)
@@ -236,6 +239,11 @@ def title_page(url):
             video_streaminfo['height'] = 720
             item.add_stream_info('video', video_streaminfo)
             item.add_stream_info('audio', {'codec': 'aac', 'language': 'en', 'channels': 2})
+            context_items = []
+            context_items.append(('Information', 'XBMC.Action(Info)'))
+            if info_type:
+                context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
+            item.add_context_menu_items(context_items)
             items.append(item)
 
 
@@ -285,6 +293,15 @@ def import_searches():
     for name in s:
         searches[name] = s[name]
     xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/add/<name>/<url>')
+def add(name,url):
+    searches = plugin.get_storage('searches')
+    d = xbmcgui.Dialog()
+    name = d.input("Name - %s" % name,name)
+    if not name:
+        return
+    searches[name] = url
 
 @plugin.route('/add_search')
 def add_search():
@@ -677,6 +694,428 @@ def find_keywords(keyword=''):
     else:
         dialog.notification('IMDB:','Nothing Found!')
 
+@plugin.route('/title_type/<url>')
+def title_type(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    title_type = params.get('title_type','')
+    if title_type:
+        current_types = title_type.split(',') #TODO preselect in Krypton
+    types = ['feature','tv_movie','tv_series','tv_episode','tv_special','mini_series','documentary','game','short','video']
+    which = d.multiselect('Title Types',types)
+    if which:
+        title_types = [types[x] for x in which]
+        params['title_type'] = ",".join(title_types)
+    else:
+        if 'title_type' in params:
+            del params['title_type']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/genres/<url>')
+def genres(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    genres = ["action", "adventure", "animation", "biography",  "comedy", "crime", "documentary", "drama", "family", "fantasy", "film_noir", "game_show", "history", "horror", "music", "musical", "mystery", "news", "reality_tv", "romance", "sci_fi", "sport", "talk_show", "thriller", "war", "western"]
+    which = d.multiselect('Genres',genres)
+    if which:
+        genress = [genres[x] for x in which]
+        params['genres'] = ",".join(genress)
+    else:
+        if 'genres' in params:
+            del params['genres']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/certificates/<url>')
+def certificates(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    certificates = ["us:g","us:pg","us:pg_13","us:r","us:nc_17","gb:u" ,"gb:pg" ,"gb:12" ,"gb:12a","gb:15" ,"gb:18" ,"gb:r18"]
+    which = d.multiselect('Certificates',certificates)
+    if which:
+        certificates = [certificates[x] for x in which]
+        params['certificates'] = ",".join(certificates)
+    else:
+        if 'certificates' in params:
+            del params['certificates']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/countries/<url>')
+def countries(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    countries = ["ar", "au", "at", "be", "br", "bg", "ca", "cn", "co", "cr", "cz", "dk", "fi", "fr", "de", "gr", "hk", "hu", "is", "in", "ir", "ie", "it", "jp", "my", "mx", "nl", "nz", "pk", "pl", "pt", "ro", "ru", "sg", "za", "es", "se", "ch", "th", "gb", "us", "af", "ax", "al", "dz", "as", "ad", "ao", "ai", "aq", "ag", "am", "aw", "az", "bs", "bh", "bd", "bb", "by", "bz", "bj", "bm", "bt", "bo", "bq", "ba", "bw", "bv", "io", "vg", "bn", "bf", "bumm", "bi", "kh", "cm", "cv", "ky", "cf", "td", "cl", "cx", "cc", "km", "cg", "ck", "ci", "hr", "cu", "cy", "cshh", "cd", "dj", "dm", "do", "ddde", "ec", "eg", "sv", "gq", "er", "ee", "et", "fk", "fo", "yucs", "fm", "fj", "gf", "pf", "tf", "ga", "gm", "ge", "gh", "gi", "gl", "gd", "gp", "gu", "gt", "gg", "gn", "gw", "gy", "ht", "hm", "va", "hn", "id", "iq", "im", "il", "jm", "je", "jo", "kz", "ke", "ki", "xko", "xkv", "kw", "kg", "la", "lv", "lb", "ls", "lr", "ly", "li", "lt", "lu", "mo", "mg", "mw", "mv", "ml", "mt", "mh", "mq", "mr", "mu", "yt", "md", "mc", "mn", "me", "ms", "ma", "mz", "mm", "na", "nr", "np", "an", "nc", "ni", "ne", "ng", "nu", "nf", "kp", "vdvn", "mp", "no", "om", "pw", "xpi", "ps", "pa", "pg", "py", "pe", "ph", "pn", "pr", "qa", "mk", "re", "rw", "bl", "sh", "kn", "lc", "mf", "pm", "vc", "ws", "sm", "st", "sa", "sn", "rs", "csxx", "sc", "xsi", "sl", "sk", "si", "sb", "so", "gs", "kr", "suhh", "lk", "sd", "sr", "sj", "sz", "sy", "tw", "tj", "tz", "tl", "tg", "tk", "to", "tt", "tn", "tr", "tm", "tc", "tv", "vi", "ug", "ua", "ae", "um", "uy", "uz", "vu", "ve", "vn", "wf", "xwg", "eh", "ye", "xyu", "zrcd", "zm", "zw"
+]
+    which = d.multiselect('Countries',countries)
+    if which:
+        countries = [countries[x] for x in which]
+        params['countries'] = ",".join(countries)
+    else:
+        if 'countries' in params:
+            del params['countries']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/groups/<url>')
+def groups(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    groups = ["top_100", "top_250", "top_1000", "now-playing-us", "oscar_winners", "oscar_best_picture_winners", "oscar_best_director_winners", "oscar_nominees", "emmy_winners", "emmy_nominees", "golden_globe_winners", "golden_globe_nominees", "razzie_winners", "razzie_nominees", "national_film_registry", "bottom_100", "bottom_250", "bottom_1000"]
+    which = d.multiselect('groups',groups)
+    if which:
+        groups = [groups[x] for x in which]
+        params['groups'] = ",".join(groups)
+    else:
+        if 'groups' in params:
+            del params['groups']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/languages/<url>')
+def languages(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    languages = ["ar", "bg", "zh", "hr", "nl", "en", "fi", "fr", "de", "el", "he", "hi", "hu", "is", "it", "ja", "ko", "no", "fa", "pl", "pt", "pa", "ro", "ru", "es", "sv", "tr", "uk", "ab", "qac", "guq", "qam", "af", "qas", "ak", "sq", "alg", "ase", "am", "apa", "an", "arc", "arp", "hy", "as", "aii", "ath", "asf", "awa", "ay", "az", "ast", "qbd", "ban", "bm", "eu", "bsc", "be", "bem", "bn", "ber", "bho", "qbi", "qbh", "bs", "bzs", "br", "bfi", "my", "yue", "ca", "km", "qax", "ce", "chr", "chy", "hne", "kw", "co", "cr", "mus", "qal", "crp", "cro", "cs", "da", "prs", "dso", "din", "qaw", "doi", "dyu", "dz", "qbc", "frs", "egy", "eo", "et", "ee", "qbg", "fo", "fil", "qbn", "fon", "fsl", "ff", "fvr", "gd", "gl", "ka", "gsg", "grb", "grc", "kl", "gn", "gu", "gnn", "gup", "ht", "hak", "bgc", "qav", "ha", "haw", "hmn", "qab", "hop", "iba", "qag", "icl", "ins", "id", "iu", "ik", "ga", "jsl", "dyo", "ktz", "qbf", "kea", "kab", "xal", "kn", "kpj", "mjw", "kar", "kk", "kca", "kha", "ki", "rw", "qar", "tlh", "kfa", "kok", "kvk", "khe", "qaq", "kro", "kyw", "qbb", "ku", "kwk", "ky", "lbj", "lad", "lo", "la", "lv", "lif", "ln", "lt", "nds", "lb", "mk", "qbm", "mag", "mai", "mg", "ms", "ml", "pqm", "qap", "mt", "mnc", "cmn", "man", "mni", "mi", "arn", "mr", "mh", "mas", "mls", "myn", "men", "mic", "enm", "nan", "min", "mwl", "lus", "moh", "mn", "moe", "qaf", "mfe", "qbl", "nah", "qba", "nv", "nbf", "nd", "nap", "yrk", "ne", "ncg", "zxx", "non", "nai", "qbk", "nyk", "ny", "oc", "oj", "qaz", "ang", "or", "pap", "qaj", "ps", "paw", "qai", "qah", "fuf", "tsz", "qu", "qya", "raj", "qbj", "rm", "rom", "rtm", "rsl", "qao", "qae", "sm", "sa", "sc", "qay", "sr", "qbo", "srr", "qad", "qau", "sn", "shh", "scn", "sjn", "sd", "si", "sio", "sk", "sl", "so", "son", "snk", "wen", "st", "qbe", "ssp", "srn", "sw", "gsw", "syl", "tl", "tg", "tmh", "ta", "tac", "tt", "te", "qak", "th", "bo", "qan", "tli", "tpi", "to", "ts", "tsc", "tn", "tcy", "tup", "tk", "tyv", "tzo", "qat", "ur", "uz", "vi", "qaa", "was", "cy", "wo", "xh", "sah", "yap", "yi", "yo", "zu" ]
+    which = d.multiselect('languages',languages)
+    if which:
+        languages = [languages[x] for x in which]
+        params['languages'] = ",".join(languages)
+    else:
+        if 'languages' in params:
+            del params['languages']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/num_votes/<url>')
+def num_votes(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    num_votes = params.get('num_votes','')
+    start = ''
+    end = ''
+    if num_votes:
+        start,end= num_votes.split(',')
+    which = d.select('Number of Votes',['Low','High'])
+    if which == 0:
+        start = d.input("Low",start)
+    elif which == 1:
+        end = d.input("High",end)
+    if start or end:
+        params['num_votes'] = ",".join([start,end])
+    else:
+        if 'num_votes' in params:
+            del params['num_votes']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/release_date/<url>')
+def release_date(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    release_date = params.get('release_date','')
+    start = ''
+    end = ''
+    if release_date:
+        start,end= release_date.split(',')
+    which = d.select('Release Date',['Start','End'])
+    if which == 0:
+        start = d.input("Start",start)
+    elif which == 1:
+        end = d.input("End",end)
+    if start or end:
+        params['release_date'] = ",".join([start,end])
+    else:
+        if 'release_date' in params:
+            del params['release_date']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/sort/<url>')
+def sort(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+    which = d.select('sort',sort)
+    if which > -1:
+        params['sort'] = sort[which]
+    else:
+        if 'sort' in params:
+            del params['sort']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/user_rating/<url>')
+def user_rating(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    user_rating = params.get('user_rating','')
+    start = ''
+    end = ''
+    if user_rating:
+        start,end= user_rating.split(',')
+    which = d.select('User Rating',['Low','High'])
+    if which == 0:
+        start = d.input("Low",start)
+    elif which == 1:
+        end = d.input("High",end)
+    if start or end:
+        params['user_rating'] = ",".join([start,end])
+    else:
+        if 'user_rating' in params:
+            del params['user_rating']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/browse/<url>')
+def browse(url):
+    fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
+    params = dict((key, '') for key in fields)
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    items = []
+    values = []
+    for p in sorted(params):
+        v = params[p]
+        if v:
+            values.append(v)
+
+    label = 'Search - %s' % ' '.join(values)
+    context_items = []
+    context_items.append(('[COLOR yellow]Add[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add', name=label, url=url))))
+    items.append(
+    {
+        'label': label,
+        'path': plugin.url_for('title_page',url=url),
+        'thumbnail':get_icon_path('unknown'),
+        'context_menu': context_items,
+    })
+    items.append(
+    {
+        'label': 'genres - ' + params['genres'],
+        'path': plugin.url_for('genres',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    items.append(
+    {
+        'label': 'title_type - ' + params['title_type'],
+        'path': plugin.url_for('title_type',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    items.append(
+    {
+        'label': 'certificates - ' + params['certificates'],
+        'path': plugin.url_for('certificates',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    items.append(
+    {
+        'label': 'countries - ' + params['countries'],
+        'path': plugin.url_for('countries',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+
+    items.append(
+    {
+        'label': 'languages - ' + params['languages'],
+        'path': plugin.url_for('languages',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    items.append(
+    {
+        'label': 'num_votes - ' + params['num_votes'],
+        'path': plugin.url_for('num_votes',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    items.append(
+    {
+        'label': 'release_date - ' + params['release_date'],
+        'path': plugin.url_for('release_date',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    items.append(
+    {
+        'label': 'sort - ' + params['sort'],
+        'path': plugin.url_for('sort',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    items.append(
+    {
+        'label': 'user_rating - ' + params['user_rating'],
+        'path': plugin.url_for('user_rating',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+
+
+
+    return items
+
 @plugin.route('/')
 def index():
     searches = plugin.get_storage('searches')
@@ -694,6 +1133,14 @@ def index():
             'thumbnail':get_icon_path('search'),
             'context_menu': context_items,
         })
+
+    items.append(
+    {
+        'label': "[COLOR dimgray]Browse[/COLOR]",
+        'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=100&production_status=released"),
+        'thumbnail':get_icon_path('unknown'),
+
+    })
 
     items.append(
     {
@@ -738,3 +1185,4 @@ if __name__ == '__main__':
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_MPAA_RATING)
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
+    plugin.set_view_mode(51)
