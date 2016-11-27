@@ -625,10 +625,19 @@ def edit_search(name):
             if user_rating:
                 start,end= user_rating.split(',')
             which = d.select('User Rating',['Low','High'])
+            rating = ["-"] + [str(float(x)/10.0) for x in range(10,101,1)]
             if which == 0:
-                start = d.input("Low",start)
+                selected = d.select("Low",rating)
+                if selected == 0:
+                    start = ''
+                elif selected > 0:
+                    start = rating[selected]
             elif which == 1:
-                end = d.input("High",end)
+                selected = d.select("High",rating)
+                if selected == 0:
+                    end = ''
+                elif selected > 0:
+                    end = rating[selected]
             if start or end:
                 params['user_rating'] = ",".join([start,end])
             else:
