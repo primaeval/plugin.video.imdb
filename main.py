@@ -115,6 +115,16 @@ def name_page(url):
             'thumbnail' : img
         })
 
+    match = re.search('<a href="(.*?)">Next\xa0\xbb</a>',html)
+    if match:
+        next_page = "http://www.imdb.com" + match.group(1)
+        items.append(
+        {
+            'label': "Next Page >>",
+            'path': plugin.url_for('name_page', url=next_page),
+            'thumbnail': get_icon_path('nextpage'),
+        })
+
     return items
 
 
@@ -1533,6 +1543,7 @@ def people():
         'thumbnail':get_icon_path('unknown'),
 
     })
+
     for search in ["oscar_winners", "oscar_best_actor_nominees", "oscar_best_actor_winners", "oscar_best_actress_nominees", "oscar_best_actress_winners", "oscar_best_director_nominees", "oscar_best_director_winners", "oscar_best_supporting_actor_nominees", "oscar_best_supporting_actor_winners", "oscar_best_supporting_actress_nominees", "oscar_best_supporting_actress_winners"]:
         url = "http://www.imdb.com/search/name?groups=%s" % search
         items.append(
