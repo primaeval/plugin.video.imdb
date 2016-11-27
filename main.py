@@ -1468,7 +1468,12 @@ def browse(url):
         'path': plugin.url_for('title',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
-
+    iitems.append(
+    {
+        'label': 'title_type - ' + params['title_type'],
+        'path': plugin.url_for('title_type',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
     iitems.append(
     {
         'label': 'sort - ' + params['sort'],
