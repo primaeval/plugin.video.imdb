@@ -96,6 +96,29 @@ def play(url):
 def execute(url):
     xbmc.executebuiltin(url)
 
+@plugin.route('/name_page/<url>')
+def name_page(url):
+    global big_list_view
+    big_list_view = True
+    r = requests.get(url, headers=headers)
+    html = r.text
+    html = HTMLParser.HTMLParser().unescape(html)
+    #log(html)
+    match = re.findall('<a href="/name/(nm[0-9]*)/" title="(.*?)"><img src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
+    items = []
+    for (id,name,img) in match:
+        url = "http://www.imdb.com/search/title?count=100&production_status=released&role=%s" % id
+        img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+        items.append({
+            'label' : name,
+            'path' : plugin.url_for('browse',url=url),
+            'thumbnail' : img
+        })
+
+    return items
+
+
+
 @plugin.route('/title_page/<url>')
 def title_page(url):
     global big_list_view
@@ -1492,6 +1515,36 @@ def browse(url):
     })
     return items + sorted(iitems, key=lambda x: x["label"])
 
+@plugin.route('/name')
+def name():
+    d = xbmcgui.Dialog()
+    who = d.input("Name")
+    if who:
+        url = "http://www.imdb.com/search/name?name=%s" % who
+        return name_page(url)
+
+@plugin.route('/people')
+def people():
+    items = []
+    items.append(
+    {
+        'label': "Name Search",
+        'path': plugin.url_for('name'),
+        'thumbnail':get_icon_path('unknown'),
+
+    })
+    for search in ["oscar_winners", "oscar_best_actor_nominees", "oscar_best_actor_winners", "oscar_best_actress_nominees", "oscar_best_actress_winners", "oscar_best_director_nominees", "oscar_best_director_winners", "oscar_best_supporting_actor_nominees", "oscar_best_supporting_actor_winners", "oscar_best_supporting_actress_nominees", "oscar_best_supporting_actress_winners"]:
+        url = "http://www.imdb.com/search/name?groups=%s" % search
+        items.append(
+        {
+            'label': search,
+            'path': plugin.url_for('name_page',url=url),
+            'thumbnail':get_icon_path('search'),
+        })
+
+    return items
+
+
 @plugin.route('/')
 def index():
     searches = plugin.get_storage('searches')
@@ -1515,6 +1568,13 @@ def index():
     {
         'label': "[COLOR dimgray]Browse[/COLOR]",
         'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=100&production_status=released"),
+        'thumbnail':get_icon_path('unknown'),
+
+    })
+    items.append(
+    {
+        'label': "[COLOR dimgray]People[/COLOR]",
+        'path': plugin.url_for('people'),
         'thumbnail':get_icon_path('unknown'),
 
     })
