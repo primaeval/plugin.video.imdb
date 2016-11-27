@@ -553,22 +553,6 @@ def edit_search(name):
             else:
                 if 'keywords' in params:
                     del params['keywords']
-        elif fields[action] == 'boxoffice_gross_us':
-            boxoffice_gross_us = params.get('boxoffice_gross_us','')
-            start = ''
-            end = ''
-            if boxoffice_gross_us:
-                start,end= boxoffice_gross_us.split(',')
-            which = d.select('Box Office Gross US',['Low','High'])
-            if which == 0:
-                start = d.input("Low",start)
-            elif which == 1:
-                end = d.input("High",end)
-            if start or end:
-                params['boxoffice_gross_us'] = ",".join([start,end])
-            else:
-                if 'boxoffice_gross_us' in params:
-                    del params['boxoffice_gross_us']
         elif fields[action] == 'runtime':
             runtime = params.get('runtime','')
             start = ''
@@ -1025,6 +1009,326 @@ def user_rating(url):
 
     return browse(url)
 
+@plugin.route('/count/<url>')
+def count(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    count = ["50","100"]
+    which = d.select('count',count)
+    if which > -1:
+        params['count'] = count[which]
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+
+@plugin.route('/plot/<url>')
+def plot(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    plot = params.get('plot','')
+    plot = d.input("plot",plot)
+    if plot:
+        params['plot'] = plot
+    else:
+        if 'plot' in params:
+            del params['plot']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/production_status/<url>')
+def production_status(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    production_status = ["released", "post production", "filming", "pre production", "completed", "script", "optioned property", "announced", "treatment outline", "pitch", "turnaround", "abandoned", "delayed", "indefinitely delayed", "active", "unknown"]
+    which = d.multiselect('production_status',production_status)
+    if which:
+        production_status = [production_status[x] for x in which]
+        params['production_status'] = ",".join(production_status)
+    else:
+        if 'production_status' in params:
+            del params['production_status']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/role/<url>')
+def role(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    crew = []
+    while True:
+        who = d.input("Cast/Crew")
+        if who:
+            id = find_crew(who)
+            if id:
+                crew.append(id)
+        else:
+            break
+    if crew:
+        params['role'] = ','.join(crew)
+    else:
+        if 'role' in params:
+            del params['role']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/keywords/<url>')
+def keywords(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    keywords = []
+    while True:
+        who = d.input("Keywords")
+        if who:
+            id = find_keywords(who)
+            if id:
+                keywords.append(id)
+        else:
+            break
+    if keywords:
+        params['keywords'] = ','.join(keywords)
+    else:
+        if 'keywords' in params:
+            del params['keywords']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/runtime/<url>')
+def runtime(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    runtime = params.get('runtime','')
+    start = ''
+    end = ''
+    if runtime:
+        start,end= runtime.split(',')
+    which = d.select('Box Office Gross US',['Low','High'])
+    if which == 0:
+        start = d.input("Low",start)
+    elif which == 1:
+        end = d.input("High",end)
+    if start or end:
+        params['runtime'] = ",".join([start,end])
+    else:
+        if 'runtime' in params:
+            del params['runtime']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+
+@plugin.route('/locations/<url>')
+def locations(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    locations = params.get('locations','')
+    locations = d.input("locations",locations)
+    if locations:
+        params['locations'] = locations
+    else:
+        if 'locations' in params:
+            del params['locations']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/companies/<url>')
+def companies(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    companies = params.get('companies','')
+    companies = d.input("companies",companies)
+    if companies:
+        params['companies'] = companies
+    else:
+        if 'companies' in params:
+            del params['companies']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/title/<url>')
+def title(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    title = params.get('title','')
+    title = d.input("Title",title)
+    if title:
+        params['title'] = title
+    else:
+        if 'title' in params:
+            del params['title']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
+@plugin.route('/boxoffice_gross_us/<url>')
+def boxoffice_gross_us(url):
+    params = {}
+    if '?' in url:
+        head,tail = url.split('?',1)
+        key_values = tail.split('&')
+        for key_value in key_values:
+            if '=' in key_value:
+                key,value = key_value.split('=')
+                params[key] = value
+    else:
+        head = url
+
+    d = xbmcgui.Dialog()
+    boxoffice_gross_us = params.get('boxoffice_gross_us','')
+    start = ''
+    end = ''
+    if boxoffice_gross_us:
+        start,end= boxoffice_gross_us.split(',')
+    which = d.select('User Rating',['Low','High'])
+    if which == 0:
+        start = d.input("Low",start)
+    elif which == 1:
+        end = d.input("High",end)
+    if start or end:
+        params['boxoffice_gross_us'] = ",".join([start,end])
+    else:
+        if 'boxoffice_gross_us' in params:
+            del params['boxoffice_gross_us']
+
+    params = {k: v for k, v in params.items() if v}
+    kv = ["%s=%s" % (x,params[x]) for x in params]
+    tail = '&'.join(kv)
+    url = head+"?"+tail
+
+    return browse(url)
+
 @plugin.route('/browse/<url>')
 def browse(url):
     fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
@@ -1041,6 +1345,7 @@ def browse(url):
 
     items = []
     values = []
+
     for p in sorted(params):
         v = params[p]
         if v:
@@ -1056,72 +1361,127 @@ def browse(url):
         'thumbnail':get_icon_path('unknown'),
         'context_menu': context_items,
     })
-    items.append(
-    {
-        'label': 'genres - ' + params['genres'],
-        'path': plugin.url_for('genres',url=url),
-        'thumbnail':get_icon_path('unknown'),
-    })
-    items.append(
-    {
-        'label': 'title_type - ' + params['title_type'],
-        'path': plugin.url_for('title_type',url=url),
-        'thumbnail':get_icon_path('unknown'),
-    })
-    items.append(
+
+    iitems = []
+    iitems.append(
     {
         'label': 'certificates - ' + params['certificates'],
         'path': plugin.url_for('certificates',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
-
-    items.append(
+    iitems.append(
+    {
+        'label': 'count - ' + params['count'],
+        'path': plugin.url_for('count',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
     {
         'label': 'countries - ' + params['countries'],
         'path': plugin.url_for('countries',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
-
-    items.append(
+    iitems.append(
+    {
+        'label': 'genres - ' + params['genres'],
+        'path': plugin.url_for('genres',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
     {
         'label': 'languages - ' + params['languages'],
         'path': plugin.url_for('languages',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
-    items.append(
+    iitems.append(
     {
         'label': 'num_votes - ' + params['num_votes'],
         'path': plugin.url_for('num_votes',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
-
-    items.append(
+    iitems.append(
+    {
+        'label': 'plot - ' + params['plot'],
+        'path': plugin.url_for('plot',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'production_status - ' + params['production_status'],
+        'path': plugin.url_for('production_status',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
     {
         'label': 'release_date - ' + params['release_date'],
         'path': plugin.url_for('release_date',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
-    items.append(
+    iitems.append(
+    {
+        'label': 'title - ' + params['title'],
+        'path': plugin.url_for('title',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+
+    iitems.append(
     {
         'label': 'sort - ' + params['sort'],
         'path': plugin.url_for('sort',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
-
-    items.append(
+    iitems.append(
+    {
+        'label': 'boxoffice_gross_us - ' + params['boxoffice_gross_us'],
+        'path': plugin.url_for('boxoffice_gross_us',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
     {
         'label': 'user_rating - ' + params['user_rating'],
         'path': plugin.url_for('user_rating',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
-
-
-
-
-    return items
+    iitems.append(
+    {
+        'label': 'role - ' + params['role'],
+        'path': plugin.url_for('role',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'keywords - ' + params['keywords'],
+        'path': plugin.url_for('keywords',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'runtime - ' + params['runtime'],
+        'path': plugin.url_for('runtime',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'locations - ' + params['locations'],
+        'path': plugin.url_for('locations',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'companies - ' + params['companies'],
+        'path': plugin.url_for('companies',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    iitems.append(
+    {
+        'label': 'groups - ' + params['groups'],
+        'path': plugin.url_for('groups',url=url),
+        'thumbnail':get_icon_path('unknown'),
+    })
+    return items + sorted(iitems, key=lambda x: x["label"])
 
 @plugin.route('/')
 def index():
@@ -1157,20 +1517,21 @@ def index():
         'thumbnail':get_icon_path('settings'),
 
     })
-    items.append(
-    {
-        'label': "[COLOR dimgray]Export Searches[/COLOR]",
-        'path': plugin.url_for('export_searches'),
-        'thumbnail':get_icon_path('settings'),
+    if plugin.get_setting('export') == 'true':
+        items.append(
+        {
+            'label': "[COLOR dimgray]Export Searches[/COLOR]",
+            'path': plugin.url_for('export_searches'),
+            'thumbnail':get_icon_path('settings'),
 
-    })
-    items.append(
-    {
-        'label': "[COLOR dimgray]Import Searches[/COLOR]",
-        'path': plugin.url_for('import_searches'),
-        'thumbnail':get_icon_path('settings'),
+        })
+        items.append(
+        {
+            'label': "[COLOR dimgray]Import Searches[/COLOR]",
+            'path': plugin.url_for('import_searches'),
+            'thumbnail':get_icon_path('settings'),
 
-    })
+        })
     return items
 
 
@@ -1181,8 +1542,8 @@ if __name__ == '__main__':
     if big_list_view == True:
         view_mode = int(plugin.get_setting('view'))
         if view_mode:
-            pass
-            #plugin.set_view_mode(view_mode)
+            #pass
+            plugin.set_view_mode(view_mode)
             #plugin.set_content("episodes")
             #xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     #content = "movies"
@@ -1193,4 +1554,4 @@ if __name__ == '__main__':
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RATING)
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_MPAA_RATING)
     #xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_VIDEO_RUNTIME)
-    plugin.set_view_mode(51)
+    #plugin.set_view_mode(51)
