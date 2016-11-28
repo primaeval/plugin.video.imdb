@@ -1,7 +1,8 @@
 <settings>
 <category label="Basic">
 <setting id="english" label="English Titles" type="bool" default="false" />
-<setting label="View Mode ID" type="number" id="view" default=""/>
+<setting id="export" label="Show Import/Export Menu" type="bool" default="false" />
+<setting label="View Mode ID" type="number" id="view" default="50"/>
 </category>
 
 </settings>

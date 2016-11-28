@@ -644,7 +644,9 @@ def edit_search(name):
                 if 'user_rating' in params:
                     del params['user_rating']
 
-        params = {k: v for k, v in params.items() if v}
+        for k,v in params.items():
+            if not v:
+                del params[k] 
         kv = ["%s=%s" % (x,params[x]) for x in params]
         tail = '&'.join(kv)
         url = head+"?"+tail
@@ -753,7 +755,10 @@ def title_type(url):
         if 'title_type' in params:
             del params['title_type']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -783,7 +788,10 @@ def genres(url):
         if 'genres' in params:
             del params['genres']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -813,7 +821,10 @@ def certificates(url):
         if 'certificates' in params:
             del params['certificates']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -844,7 +855,10 @@ def countries(url):
         if 'countries' in params:
             del params['countries']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -874,7 +888,10 @@ def groups(url):
         if 'groups' in params:
             del params['groups']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -904,7 +921,10 @@ def languages(url):
         if 'languages' in params:
             del params['languages']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -941,7 +961,10 @@ def num_votes(url):
         if 'num_votes' in params:
             del params['num_votes']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -978,7 +1001,10 @@ def release_date(url):
         if 'release_date' in params:
             del params['release_date']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1007,7 +1033,10 @@ def sort(url):
         if 'sort' in params:
             del params['sort']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1053,7 +1082,10 @@ def user_rating(url):
         if 'user_rating' in params:
             del params['user_rating']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1079,7 +1111,10 @@ def count(url):
     if which > -1:
         params['count'] = count[which]
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1109,7 +1144,10 @@ def plot(url):
         if 'plot' in params:
             del params['plot']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1139,7 +1177,10 @@ def production_status(url):
         if 'production_status' in params:
             del params['production_status']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1175,7 +1216,10 @@ def role(url):
         if 'role' in params:
             del params['role']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1211,7 +1255,10 @@ def keywords(url):
         if 'keywords' in params:
             del params['keywords']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1248,7 +1295,10 @@ def runtime(url):
         if 'runtime' in params:
             del params['runtime']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1278,7 +1328,10 @@ def locations(url):
         if 'locations' in params:
             del params['locations']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1307,7 +1360,10 @@ def companies(url):
         if 'companies' in params:
             del params['companies']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1336,7 +1392,10 @@ def title(url):
         if 'title' in params:
             del params['title']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
+
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
@@ -1373,7 +1432,9 @@ def boxoffice_gross_us(url):
         if 'boxoffice_gross_us' in params:
             del params['boxoffice_gross_us']
 
-    params = {k: v for k, v in params.items() if v}
+    for k,v in params.items():
+        if not v:
+            del params[k]
     kv = ["%s=%s" % (x,params[x]) for x in params]
     tail = '&'.join(kv)
     url = head+"?"+tail
