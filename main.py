@@ -2066,7 +2066,7 @@ def browse(url):
         if v:
             values.append(v)
 
-    label = 'Search - %s' % ' '.join(values)
+    label = 'IMDb Search - %s' % ' '.join(values)
     context_items = []
     context_items.append(('[COLOR yellow]Add[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add', name=label, url=url))))
     items.append(
