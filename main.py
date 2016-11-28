@@ -395,7 +395,8 @@ def edit_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
     fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
-
+    labels = ["Boxoffice Gross US", "Certificates", "Companies", "Count", "Countries", "Genres", "Groups", "Keywords", "Languages", "Locations", "Num Votes", "Plot", "Production Status", "Release Date", "Role", "Runtime", "Sort", "Title", "Title Type", "User Rating"]
+    label_field = zip(labels,fields)
     params = dict((key, '') for key in fields)
     if '?' in url:
         head,tail = url.split('?',1)
@@ -408,7 +409,7 @@ def edit_search(name):
         head = url
     d = xbmcgui.Dialog()
     while True:
-        actions = ["%s = %s" % (x,params.get(x,'')) for x in fields]
+        actions = ["%s - %s" % (l,params.get(f,'')) for l,f in label_field]
         action = d.select(name,actions)
         if action < 0:
             return
@@ -1168,7 +1169,7 @@ def production_status(url):
         head = url
 
     d = xbmcgui.Dialog()
-    production_status = ["released", "post production", "filming", "pre production", "completed", "script", "optioned property", "announced", "treatment outline", "pitch", "turnaround", "abandoned", "delayed", "indefinitely delayed", "active", "unknown"]
+    production_status = ["released", "post_production", "filming", "pre_production", "completed", "script", "optioned_property", "announced", "treatment_outline", "pitch", "turnaround", "abandoned", "delayed", "indefinitely_delayed", "active", "unknown"]
     which = d.multiselect('production_status',production_status)
     if which:
         production_status = [production_status[x] for x in which]
@@ -1477,124 +1478,124 @@ def browse(url):
     iitems = []
     iitems.append(
     {
-        'label': 'certificates - ' + params['certificates'],
+        'label': 'Certificates - ' + params['certificates'],
         'path': plugin.url_for('certificates',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'count - ' + params['count'],
+        'label': 'Count - ' + params['count'],
         'path': plugin.url_for('count',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'countries - ' + params['countries'],
+        'label': 'Countries - ' + params['countries'],
         'path': plugin.url_for('countries',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
     iitems.append(
     {
-        'label': 'genres - ' + params['genres'],
+        'label': 'Genres - ' + params['genres'],
         'path': plugin.url_for('genres',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'languages - ' + params['languages'],
+        'label': 'Languages - ' + params['languages'],
         'path': plugin.url_for('languages',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
     iitems.append(
     {
-        'label': 'num_votes - ' + params['num_votes'],
+        'label': 'Number of Votes - ' + params['num_votes'],
         'path': plugin.url_for('num_votes',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'plot - ' + params['plot'],
+        'label': 'Plot - ' + params['plot'],
         'path': plugin.url_for('plot',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'production_status - ' + params['production_status'],
+        'label': 'Production Status - ' + params['production_status'],
         'path': plugin.url_for('production_status',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'release_date - ' + params['release_date'],
+        'label': 'Release Date - ' + params['release_date'],
         'path': plugin.url_for('release_date',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
 
     iitems.append(
     {
-        'label': 'title - ' + params['title'],
+        'label': 'Title - ' + params['title'],
         'path': plugin.url_for('title',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'title_type - ' + params['title_type'],
+        'label': 'Title Type - ' + params['title_type'],
         'path': plugin.url_for('title_type',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'sort - ' + params['sort'],
+        'label': 'Sort - ' + params['sort'],
         'path': plugin.url_for('sort',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'boxoffice_gross_us - ' + params['boxoffice_gross_us'],
+        'label': 'Boxoffice Gross US - ' + params['boxoffice_gross_us'],
         'path': plugin.url_for('boxoffice_gross_us',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'user_rating - ' + params['user_rating'],
+        'label': 'User Rating - ' + params['user_rating'],
         'path': plugin.url_for('user_rating',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'role - ' + params['role'],
+        'label': 'Role - ' + params['role'],
         'path': plugin.url_for('role',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'keywords - ' + params['keywords'],
+        'label': 'Keywords - ' + params['keywords'],
         'path': plugin.url_for('keywords',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'runtime - ' + params['runtime'],
+        'label': 'Runtime - ' + params['runtime'],
         'path': plugin.url_for('runtime',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'locations - ' + params['locations'],
+        'label': 'Locations - ' + params['locations'],
         'path': plugin.url_for('locations',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'companies - ' + params['companies'],
+        'label': 'Companies - ' + params['companies'],
         'path': plugin.url_for('companies',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
     iitems.append(
     {
-        'label': 'groups - ' + params['groups'],
+        'label': 'Groups - ' + params['groups'],
         'path': plugin.url_for('groups',url=url),
         'thumbnail':get_icon_path('unknown'),
     })
@@ -1620,10 +1621,10 @@ def people():
     })
 
     for search in ["oscar_winners", "oscar_best_actor_nominees", "oscar_best_actor_winners", "oscar_best_actress_nominees", "oscar_best_actress_winners", "oscar_best_director_nominees", "oscar_best_director_winners", "oscar_best_supporting_actor_nominees", "oscar_best_supporting_actor_winners", "oscar_best_supporting_actress_nominees", "oscar_best_supporting_actress_winners"]:
-        url = "http://www.imdb.com/search/name?groups=%s" % search
+        url = "http://www.imdb.com/search/name?count=100&groups=%s" % search
         items.append(
         {
-            'label': search,
+            'label': search.replace('_',' ').title(),
             'path': plugin.url_for('name_page',url=url),
             'thumbnail':get_icon_path('search'),
         })
