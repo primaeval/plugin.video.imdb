@@ -678,6 +678,7 @@ def execute(url):
 def name_page(url):
     global big_list_view
     big_list_view = True
+    people = plugin.get_storage('people')
     r = requests.get(url, headers=headers)
     html = r.text
     html = HTMLParser.HTMLParser().unescape(html)
@@ -685,6 +686,7 @@ def name_page(url):
     match = re.findall('<a href="/name/(nm[0-9]*)/" title="(.*?)"><img src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
     items = []
     for (id,name,img) in match:
+        people[id] = name
         url = "http://www.imdb.com/search/title?count=100&production_status=released&role=%s" % id
         img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
         items.append({
@@ -1244,6 +1246,7 @@ def edit_search(name):
 
 
 def find_crew(name=''):
+    people = plugin.get_storage('people')
     dialog = xbmcgui.Dialog()
     if not name:
         name = dialog.input('Search for crew (actor, director etc)', type=xbmcgui.INPUT_ALPHANUM)
@@ -1259,18 +1262,22 @@ def find_crew(name=''):
     if 'name_popular' in json:
         pop = json['name_popular']
         for p in pop:
+            people[p['id']] = p['name']
             crew.append(("[COLOR yellow]%s[/COLOR]" % p['name'],p['id']))
     if 'name_exact' in json:
         pop = json['name_exact']
         for p in pop:
+            people[p['id']] = p['name']
             crew.append(("[COLOR green]%s[/COLOR]" % p['name'],p['id']))
     if 'name_approx' in json:
         approx = json['name_approx']
         for p in approx:
+            people[p['id']] = p['name']
             crew.append(("[COLOR orange]%s[/COLOR]" % p['name'],p['id']))
     if 'name_substring' in json:
         pop = json['name_substring']
         for p in pop:
+            people[p['id']] = p['name']
             crew.append(("[COLOR red]%s[/COLOR]" % p['name'],p['id']))
     names = [item[0] for item in crew]
     if names:
@@ -2032,6 +2039,7 @@ def boxoffice_gross_us(url):
 
 @plugin.route('/browse/<url>')
 def browse(url):
+    people = plugin.get_storage('people')
     fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
     params = dict((key, '') for key in fields)
     if '?' in url:
@@ -2049,6 +2057,12 @@ def browse(url):
 
     for p in sorted(params):
         v = params[p]
+        if p == "role":
+            ids = v.split(',')
+            names = []
+            for id in ids:
+                names.append(people.get(id,id))
+            v = ','.join(names)
         if v:
             values.append(v)
 
@@ -2241,14 +2255,14 @@ def index():
 
     items.append(
     {
-        'label': "[COLOR dimgray]Browse[/COLOR]",
+        'label': "Browse",
         'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=100&production_status=released"),
         'thumbnail':get_icon_path('unknown'),
 
     })
     items.append(
     {
-        'label': "[COLOR dimgray]People[/COLOR]",
+        'label': "People",
         'path': plugin.url_for('people'),
         'thumbnail':get_icon_path('unknown'),
 
@@ -2256,7 +2270,7 @@ def index():
 
     items.append(
     {
-        'label': "[COLOR dimgray]Add Search[/COLOR] "+ repr(datetime.datetime.now()),
+        'label': "[COLOR dimgray]Add Search[/COLOR]",
         'path': plugin.url_for('add_search'),
         'thumbnail':get_icon_path('settings'),
 
