@@ -790,6 +790,7 @@ def title_page(url):
         plot_match = re.search(r'<p class="text-muted">(.+?)</p>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if plot_match:
             plot = plot_match.group(1).strip()
+            plot = re.sub('<a.*?</a>','',plot, flags=(re.DOTALL | re.MULTILINE))
 
         #Stars:\n<a href="/name/nm0255124/?ref_=adv_li_st_0"\n>Tom Ellis</a>, \n<a href="/name/nm0314514/?ref_=adv_li_st_1"\n>Lauren German</a>, \n<a href="/name/nm1204760/?ref_=adv_li_st_2"\n>Kevin Alejandro</a>, \n<a href="/name/nm0940851/?ref_=adv_li_st_3"\n>D.B. Woodside</a>\n    </p>
         cast = []
@@ -990,7 +991,7 @@ def edit_search(name):
         actions = ["%s - %s" % (l,params.get(f,'')) for l,f in label_field]
         action = d.select(name,actions)
         if action < 0:
-            return
+            break
         elif fields[action] == 'certificates':
             certificates = ["us:g","us:pg","us:pg_13","us:r","us:nc_17","gb:u" ,"gb:pg" ,"gb:12" ,"gb:12a","gb:15" ,"gb:18" ,"gb:r18"]
             which = d.multiselect('Certificates',certificates)
@@ -1232,13 +1233,15 @@ def edit_search(name):
 
         for k,v in params.items():
             if not v:
-                del params[k] 
+                del params[k]
         kv = ["%s=%s" % (x,params[x]) for x in params]
         tail = '&'.join(kv)
         url = head+"?"+tail
         #log(url)
         searches[name] = url
+
     xbmc.executebuiltin('Container.Refresh')
+
 
 def find_crew(name=''):
     dialog = xbmcgui.Dialog()
@@ -1349,7 +1352,7 @@ def title_type(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/genres/<url>')
 def genres(url):
@@ -1382,7 +1385,7 @@ def genres(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/certificates/<url>')
 def certificates(url):
@@ -1415,7 +1418,7 @@ def certificates(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/countries/<url>')
 def countries(url):
@@ -1449,7 +1452,7 @@ def countries(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/groups/<url>')
 def groups(url):
@@ -1482,7 +1485,7 @@ def groups(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/languages/<url>')
 def languages(url):
@@ -1515,7 +1518,7 @@ def languages(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/num_votes/<url>')
 def num_votes(url):
@@ -1555,7 +1558,7 @@ def num_votes(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/release_date/<url>')
 def release_date(url):
@@ -1595,7 +1598,7 @@ def release_date(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/sort/<url>')
 def sort(url):
@@ -1627,7 +1630,7 @@ def sort(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/user_rating/<url>')
 def user_rating(url):
@@ -1676,7 +1679,7 @@ def user_rating(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/count/<url>')
 def count(url):
@@ -1705,7 +1708,7 @@ def count(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 
 @plugin.route('/plot/<url>')
@@ -1738,7 +1741,7 @@ def plot(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/production_status/<url>')
 def production_status(url):
@@ -1771,7 +1774,7 @@ def production_status(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/role/<url>')
 def role(url):
@@ -1810,7 +1813,7 @@ def role(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/keywords/<url>')
 def keywords(url):
@@ -1849,7 +1852,7 @@ def keywords(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/runtime/<url>')
 def runtime(url):
@@ -1889,7 +1892,7 @@ def runtime(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 
 @plugin.route('/locations/<url>')
@@ -1922,7 +1925,7 @@ def locations(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/companies/<url>')
 def companies(url):
@@ -1954,7 +1957,7 @@ def companies(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/title/<url>')
 def title(url):
@@ -1986,7 +1989,7 @@ def title(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/boxoffice_gross_us/<url>')
 def boxoffice_gross_us(url):
@@ -2025,7 +2028,7 @@ def boxoffice_gross_us(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    return browse(url)
+    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/browse/<url>')
 def browse(url):
@@ -2056,7 +2059,7 @@ def browse(url):
     {
         'label': label,
         'path': plugin.url_for('title_page',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('search'),
         'context_menu': context_items,
     })
 
@@ -2065,124 +2068,124 @@ def browse(url):
     {
         'label': 'Certificates - ' + params['certificates'],
         'path': plugin.url_for('certificates',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Count - ' + params['count'],
         'path': plugin.url_for('count',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Countries - ' + params['countries'],
         'path': plugin.url_for('countries',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
 
     iitems.append(
     {
         'label': 'Genres - ' + params['genres'],
         'path': plugin.url_for('genres',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Languages - ' + params['languages'],
         'path': plugin.url_for('languages',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
 
     iitems.append(
     {
         'label': 'Number of Votes - ' + params['num_votes'],
         'path': plugin.url_for('num_votes',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Plot - ' + params['plot'],
         'path': plugin.url_for('plot',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Production Status - ' + params['production_status'],
         'path': plugin.url_for('production_status',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Release Date - ' + params['release_date'],
         'path': plugin.url_for('release_date',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
 
     iitems.append(
     {
         'label': 'Title - ' + params['title'],
         'path': plugin.url_for('title',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Title Type - ' + params['title_type'],
         'path': plugin.url_for('title_type',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Sort - ' + params['sort'],
         'path': plugin.url_for('sort',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Boxoffice Gross US - ' + params['boxoffice_gross_us'],
         'path': plugin.url_for('boxoffice_gross_us',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'User Rating - ' + params['user_rating'],
         'path': plugin.url_for('user_rating',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Role - ' + params['role'],
         'path': plugin.url_for('role',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Keywords - ' + params['keywords'],
         'path': plugin.url_for('keywords',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Runtime - ' + params['runtime'],
         'path': plugin.url_for('runtime',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Locations - ' + params['locations'],
         'path': plugin.url_for('locations',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Companies - ' + params['companies'],
         'path': plugin.url_for('companies',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     iitems.append(
     {
         'label': 'Groups - ' + params['groups'],
         'path': plugin.url_for('groups',url=url),
-        'thumbnail':get_icon_path('unknown'),
+        'thumbnail':get_icon_path('settings'),
     })
     return items + sorted(iitems, key=lambda x: x["label"])
 
@@ -2253,7 +2256,7 @@ def index():
 
     items.append(
     {
-        'label': "[COLOR dimgray]Add Search[/COLOR]",
+        'label': "[COLOR dimgray]Add Search[/COLOR] "+ repr(datetime.datetime.now()),
         'path': plugin.url_for('add_search'),
         'thumbnail':get_icon_path('settings'),
 
@@ -2274,7 +2277,9 @@ def index():
 
         })
     return items
-
+    #sort_methods = ['label', 'title', ('date', '%D')]
+    #plugin.finish(items, sort_methods=sort_methods,cache_to_disc=False,view_mode="thumbnail")
+    #plugin.finish(items, cache_to_disc=False)
 
 
 if __name__ == '__main__':
