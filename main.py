@@ -837,7 +837,7 @@ def title_page(url):
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
                 vlabel = urllib.quote_plus(vlabel.encode("utf8"))
-                meta_url = "plugin://plugin.video.imdbsearch/?action=episode&imdb_id=%s&episode_id=%s&title=%s" % (imdbID,episode_id,vlabel)
+                meta_url = "plugin://plugin.video.imdb.search/?action=episode&imdb_id=%s&episode_id=%s&title=%s" % (imdbID,episode_id,vlabel) #TODO
                 id = episode_id
             else:
                 meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
@@ -890,7 +890,7 @@ def tv_movie():
 @plugin.route('/export_searches')
 def export_searches():
     searches = plugin.get_storage('searches')
-    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb/searches.json","wb")
+    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb.search/searches.json","wb")
     s = dict((x,searches[x]) for x in searches)
     j = json.dumps(s,indent=2)
     f.write(j)
@@ -900,7 +900,7 @@ def export_searches():
 @plugin.route('/import_searches')
 def import_searches():
     searches = plugin.get_storage('searches')
-    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb/searches.json","rb")
+    f = xbmcvfs.File("special://profile/addon_data/plugin.video.imdb.search/searches.json","rb")
     j = f.read()
     s = json.loads(j)
     f.close()

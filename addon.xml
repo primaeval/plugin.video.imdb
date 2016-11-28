@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<addon id="plugin.video.imdb"
+<addon id="plugin.video.imdb.search"
 version="0.0.1"
-name="IMDb"
+name="IMDb Advanced Search"
 provider-name="primaeval">
 <requires>
   <import addon="xbmc.python" version="2.20.0"/>
@@ -13,8 +13,8 @@ provider-name="primaeval">
   <provides>video</provides>
 </extension>
 <extension point="xbmc.addon.metadata">
-  <summary lang="en">IMDb</summary>
-  <description lang="en"></description>
+  <summary lang="en">IMDb Advanced Search</summary>
+  <description lang="en">Combined IMDb Advanced Title and People Search. Meta4Kodi playback. Extended Info.</description>
   <disclaimer lang="en">.</disclaimer>
 </extension>
 </addon>
