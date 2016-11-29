@@ -645,6 +645,21 @@ def unescape( str ):
     str = str.replace("&amp;","&")
     return str
 
+def load_people():
+    f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/people.json','rb')
+    if not f:
+        return
+    s = f.read()
+    f.close()
+    if s:
+        return json.loads(s)
+
+def save_people(people):
+    f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/people.json','wb')
+    s = json.dumps(people)
+    f.write(s)
+    f.close()
+
 @plugin.route('/download/<name>/<url>')
 def download(name,url):
     downloads = plugin.get_storage('downloads')
@@ -680,7 +695,10 @@ def execute(url):
 def name_page(url):
     global big_list_view
     big_list_view = True
-    people = plugin.get_storage('people')
+    #people = plugin.get_storage('people')
+    people = load_people()
+    if not people:
+        people = {}
     r = requests.get(url, headers=headers)
     html = r.content
     #html = HTMLParser.HTMLParser().unescape(html)
@@ -701,7 +719,8 @@ def name_page(url):
             'thumbnail' : img
         })
 
-    match = re.search('<a href="(.*?)">Next\xa0\xbb</a>',html)
+    match = re.search('<a href="(.*?)">Next',html)
+    log(match)
     if match:
         next_page = "http://www.imdb.com" + match.group(1)
         items.append(
@@ -710,6 +729,7 @@ def name_page(url):
             'path': plugin.url_for('name_page', url=next_page),
             'thumbnail': get_icon_path('nextpage'),
         })
+    save_people(people)
     return items
 
 
@@ -865,12 +885,11 @@ def title_page(url):
             item.add_context_menu_items(context_items)
             items.append(item)
 
-
     #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
-    pagination_match = re.search('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
+    pagination_match = re.findall('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
     if pagination_match:
-        next_page = 'http://www.imdb.com/search/title?'+pagination_match.group(1).strip('?')
-        #log(next_page)
+        next_page = 'http://www.imdb.com/search/title?'+pagination_match[-1].strip('?')
+        log(next_page)
         items.append(
         {
             'label': "Next Page >>",
@@ -1251,7 +1270,10 @@ def edit_search(name):
 
 
 def find_crew(name=''):
-    people = plugin.get_storage('people')
+    #people = plugin.get_storage('people')
+    people = load_people()
+    if not people:
+        people = {}
     dialog = xbmcgui.Dialog()
     if not name:
         name = dialog.input('Search for crew (actor, director etc)', type=xbmcgui.INPUT_ALPHANUM)
@@ -1290,6 +1312,7 @@ def find_crew(name=''):
         if index > -1:
             id = crew[index][1]
             people[id] = id_name[id]
+            save_people(people)
             return id
     else:
         dialog.notification('IMDB:','Nothing Found!')
@@ -2045,7 +2068,10 @@ def boxoffice_gross_us(url):
 
 @plugin.route('/browse/<url>')
 def browse(url):
-    people = plugin.get_storage('people')
+    #people = plugin.get_storage('people')
+    people = load_people()
+    if not people:
+        people = {}
     fields = ["boxoffice_gross_us", "certificates", "companies", "count", "countries", "genres", "groups", "keywords", "languages", "locations", "num_votes", "plot", "production_status", "release_date", "role", "runtime", "sort", "title", "title_type", "user_rating"]
     params = dict((key, '') for key in fields)
     if '?' in url:
@@ -2067,7 +2093,8 @@ def browse(url):
             ids = v.split(',')
             names = []
             for id in ids:
-                names.append(people.get(id,id))
+                names.append(people.get(id,id).encode("utf8"))
+                log(names)
             v = ','.join(names)
         if v:
             values.append(v)
