@@ -2216,7 +2216,7 @@ def name():
     d = xbmcgui.Dialog()
     who = d.input("Name")
     if who:
-        url = "http://www.imdb.com/search/name?name=%s" % who
+        url = "http://www.imdb.com/search/name?name=%s&sort=%s" % (who,plugin.get_setting('people.sort'))
         return name_page(url)
 
 @plugin.route('/people_search')
@@ -2231,7 +2231,7 @@ def people_search():
     })
 
     for search in ["oscar_winners", "oscar_best_actor_nominees", "oscar_best_actor_winners", "oscar_best_actress_nominees", "oscar_best_actress_winners", "oscar_best_director_nominees", "oscar_best_director_winners", "oscar_best_supporting_actor_nominees", "oscar_best_supporting_actor_winners", "oscar_best_supporting_actress_nominees", "oscar_best_supporting_actress_winners"]:
-        url = "http://www.imdb.com/search/name?count=100&groups=%s" % search
+        url = "http://www.imdb.com/search/name?count=100&groups=%s&sort=%s" % (search,plugin.get_setting('people.sort'))
         items.append(
         {
             'label': search.replace('_',' ').title(),
