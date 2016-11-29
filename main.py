@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from rpc import RPC
 from xbmcswift2 import Plugin
 from xbmcswift2 import actions
@@ -680,17 +682,21 @@ def name_page(url):
     big_list_view = True
     people = plugin.get_storage('people')
     r = requests.get(url, headers=headers)
-    html = r.text
-    html = HTMLParser.HTMLParser().unescape(html)
+    html = r.content
+    #html = HTMLParser.HTMLParser().unescape(html)
     #log(html)
     match = re.findall('<a href="/name/(nm[0-9]*)/" title="(.*?)"><img src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
     items = []
     for (id,name,img) in match:
+        #log(name)
+        #log(len(name))
+        #name = name.decode('utf-8')
+        #log(name)
         people[id] = name
         url = "http://www.imdb.com/search/title?count=100&production_status=released&role=%s" % id
         img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
         items.append({
-            'label' : name,
+            'label' :  name,
             'path' : plugin.url_for('browse',url=url),
             'thumbnail' : img
         })
@@ -714,8 +720,8 @@ def title_page(url):
     global big_list_view
     big_list_view = True
     r = requests.get(url, headers=headers)
-    html = r.text
-    html = HTMLParser.HTMLParser().unescape(html)
+    html = r.content
+    #html = HTMLParser.HTMLParser().unescape(html)
 
     lister_items = html.split('<div class="lister-item ')
     items = []
@@ -833,7 +839,7 @@ def title_page(url):
             id = imdbID
             #log(title_type)
             if title_type == "tv_series" or title_type == "mini_series":
-                meta_url = "plugin://plugin.video.meta/tv/search_term/%s/1" % urllib.quote_plus(title.encode("utf8"))
+                meta_url = "plugin://plugin.video.meta/tv/search_term/%s/1" % urllib.quote_plus(title)
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
                 vlabel = urllib.quote_plus(vlabel.encode("utf8"))
