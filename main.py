@@ -710,7 +710,6 @@ def name_page(url):
             'path': plugin.url_for('name_page', url=next_page),
             'thumbnail': get_icon_path('nextpage'),
         })
-
     return items
 
 
@@ -1264,37 +1263,36 @@ def find_crew(name=''):
     r = requests.get(url)
     json = r.json()
     crew = []
-
+    id_name = {}
     if 'name_popular' in json:
         pop = json['name_popular']
         for p in pop:
-            people[p['id']] = p['name']
+            id_name[p['id']] = p['name']
             crew.append(("[COLOR yellow]%s[/COLOR]" % p['name'],p['id']))
     if 'name_exact' in json:
         pop = json['name_exact']
         for p in pop:
-            people[p['id']] = p['name']
+            id_name[p['id']] = p['name']
             crew.append(("[COLOR green]%s[/COLOR]" % p['name'],p['id']))
     if 'name_approx' in json:
         approx = json['name_approx']
         for p in approx:
-            people[p['id']] = p['name']
+            id_name[p['id']] = p['name']
             crew.append(("[COLOR orange]%s[/COLOR]" % p['name'],p['id']))
     if 'name_substring' in json:
         pop = json['name_substring']
         for p in pop:
-            people[p['id']] = p['name']
+            id_name[p['id']] = p['name']
             crew.append(("[COLOR red]%s[/COLOR]" % p['name'],p['id']))
     names = [item[0] for item in crew]
     if names:
         index = dialog.select('Pick crew member',names)
         if index > -1:
             id = crew[index][1]
-            people.sync()
+            people[id] = id_name[id]
             return id
     else:
         dialog.notification('IMDB:','Nothing Found!')
-    people.sync()
 
 def find_keywords(keyword=''):
     dialog = xbmcgui.Dialog()
