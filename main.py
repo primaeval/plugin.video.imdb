@@ -798,7 +798,7 @@ def title_page(url):
         plot_match = re.search(r'<p class="text-muted">(.+?)</p>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if plot_match:
             plot = plot_match.group(1).strip()
-            plot = re.sub('<a.*?</a>','',plot, flags=(re.DOTALL | re.MULTILINE))
+            plot = re.sub('<a.*?</a>','',plot)
 
         #Stars:\n<a href="/name/nm0255124/?ref_=adv_li_st_0"\n>Tom Ellis</a>, \n<a href="/name/nm0314514/?ref_=adv_li_st_1"\n>Lauren German</a>, \n<a href="/name/nm1204760/?ref_=adv_li_st_2"\n>Kevin Alejandro</a>, \n<a href="/name/nm0940851/?ref_=adv_li_st_3"\n>D.B. Woodside</a>\n    </p>
         cast = []
@@ -1290,9 +1290,11 @@ def find_crew(name=''):
         index = dialog.select('Pick crew member',names)
         if index > -1:
             id = crew[index][1]
+            people.sync()
             return id
     else:
         dialog.notification('IMDB:','Nothing Found!')
+    people.sync()
 
 def find_keywords(keyword=''):
     dialog = xbmcgui.Dialog()
@@ -2217,8 +2219,8 @@ def name():
         url = "http://www.imdb.com/search/name?name=%s" % who
         return name_page(url)
 
-@plugin.route('/people')
-def people():
+@plugin.route('/people_search')
+def people_search():
     items = []
     items.append(
     {
@@ -2269,7 +2271,7 @@ def index():
     items.append(
     {
         'label': "People",
-        'path': plugin.url_for('people'),
+        'path': plugin.url_for('people_search'),
         'thumbnail':get_icon_path('unknown'),
 
     })
