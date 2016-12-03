@@ -1126,7 +1126,7 @@ def edit_search(name):
                 if 'release_date' in params:
                     del params['release_date']
         elif fields[action] == 'sort':
-            sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+            sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "user_rating,asc", "user_rating,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
             which = d.select('sort',sort)
             if which > -1:
                 params['sort'] = sort[which]
@@ -1650,7 +1650,8 @@ def sort(url):
         head = url
 
     d = xbmcgui.Dialog()
-    sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+    sort = ["moviemeter,asc", "moviemeter,desc", "alpha,asc", "alpha,desc", "user_rating,asc", "user_rating,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "num_votes,asc", "num_votes,desc", "boxoffice_gross_us,asc", "boxoffice_gross_us,desc", "runtime,asc", "runtime,desc", "year,asc", "year,desc", "release_date_us,asc", "release_date_us,desc", "my_ratings", "my_ratings,asc"]
+
     which = d.select('sort',sort)
     if which > -1:
         params['sort'] = sort[which]
