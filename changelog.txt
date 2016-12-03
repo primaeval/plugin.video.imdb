@@ -1,3 +1,6 @@
+version 0.0.4
+- sort by user rating missing
+
 version 0.0.3
 - Android fixes
 
