@@ -1,3 +1,6 @@
+version 0.0.5
+- catchup plugin setting
+
 version 0.0.4
 - sort by user rating missing
 
