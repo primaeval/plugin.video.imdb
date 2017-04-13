@@ -858,14 +858,14 @@ def title_page(url):
             id = imdbID
             #log(title_type)
             if title_type == "tv_series" or title_type == "mini_series":
-                meta_url = "plugin://plugin.video.meta/tv/search_term/%s/1" % urllib.quote_plus(title)
+                meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
                 vlabel = urllib.quote_plus(vlabel.encode("utf8"))
                 meta_url = "plugin://plugin.video.imdb.search/?action=episode&imdb_id=%s&episode_id=%s&title=%s" % (imdbID,episode_id,vlabel) #TODO
                 id = episode_id
             else:
-                meta_url = 'plugin://plugin.video.meta/movies/play/imdb/%s/select' % imdbID
+                meta_url = 'plugin://%s/movies/play/imdb/%s/select' % (plugin.get_setting('catchup.plugin').lower(),imdbID)
             #log(meta_url)
         if imdbID:
             item = ListItem(label=title,thumbnail=img_url,path=meta_url)
