@@ -892,7 +892,17 @@ def title_page(url):
             context_items.append(('Information', 'XBMC.Action(Info)'))
             if info_type:
                 context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
-                context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
+            context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
+            try:
+                if title_type == 'movie' and xbmcaddon.Addon('plugin.video.couchpotato_manager'):
+                    context_items.append(('Add to Couch Potato', "XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add-by-id/%s)" % imdbID))
+            except:
+                pass
+            try:
+                if title_type == "tv_series" or title_type == "mini_series" and xbmcaddon.Addon('plugin.video.sickrage'):
+                    context_items.append(('Add to Sickrage', "XBMC.RunPlugin(plugin://plugin.video.sickrage?action=addshow&&show_name=%s)" % title))
+            except:
+                pass
             item.add_context_menu_items(context_items)
             items.append(item)
 
@@ -2277,7 +2287,7 @@ def people_search():
         })
 
     return items
-    
+
 def on_token_refreshed(response):
     plugin.set_setting( "authorization", dumps(response))
 
@@ -2290,10 +2300,10 @@ def authenticate():
     if not authorization:
         return False
     plugin.set_setting( "authorization", dumps(authorization))
-    return True    
-    
-    
-@plugin.route('/add_to_trakt_watchlist/<type>/<imdb_id/<title>')
+    return True
+
+
+@plugin.route('/add_to_trakt_watchlist/<type>/<imdb_id>/<title>')
 def add_to_trakt_watchlist(type,imdb_id,title):
     Trakt.configuration.defaults.app(
         id=8835
@@ -2318,7 +2328,7 @@ def add_to_trakt_watchlist(type,imdb_id,title):
             ]
         })
         dialog = xbmcgui.Dialog()
-        dialog.notification("Trakt: add to watchlist",title)    
+        dialog.notification("Trakt: add to watchlist",title)
 
 
 @plugin.route('/')
