@@ -1,3 +1,6 @@
+version 0.0.6
+- Trakt. Couchpotato. Sickrage.
+
 version 0.0.5
 - catchup plugin setting
 
