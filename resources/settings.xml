@@ -6,7 +6,7 @@
 <setting id="english" label="English Titles" type="bool" default="false" />
 <setting id="people.sort" label="People Sort Order" type="select" default="starmeter,asc" values="starmeter,asc|starmeter,desc|alpha,asc|alpha,desc|height,asc|height,desc|birth_date,asc|birth_date,desc|death_date,asc|death_date,desc|my_ratings|my_ratings,asc" />
 <setting type="sep"/>
-<setting id="enhance" label="Wait for Better Images" type="bool" default="false" />
+<setting id="enhance" label="Image Quality" type="enum" default="2" values="Worst|Better|Best" />
 <setting type="sep"/>
 <setting id="export" label="Show Import/Export Menu" type="bool" default="false" />
 <setting type="sep"/>

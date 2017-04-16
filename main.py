@@ -716,7 +716,7 @@ def name_page(url):
         #name = name.decode('utf-8')
         #log(name)
         people[id] = name
-        url = "http://www.imdb.com/search/title?count=100&production_status=released&role=%s" % id
+        url = "http://www.imdb.com/search/title?count=50&production_status=released&role=%s" % id
         img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
         items.append({
             'label' :  name,
@@ -759,11 +759,14 @@ def title_page(url):
         img_match = re.search(r'<img.*?loadlate="(.*?)"', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if img_match:
             img = img_match.group(1)
-            if plugin.get_setting('enhance') == 'true':
+            if plugin.get_setting('enhance') == '2':
                 img_url = re.sub(r'U[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
             else:
-                img_url = re.sub(r'UX67_CR(.*?),0,67,98','UX182_CR\g<1>,0,182,268',img)
-                img_url = re.sub(r'UY98_CR(.*?),0,67,98','UY268_CR\g<1>,0,182,268',img_url)
+                if plugin.get_setting('enhance') == '0':
+                    img_url = img
+                else:
+                    img_url = re.sub(r'UX67_CR(.*?),0,67,98','UX182_CR\g<1>,0,182,268',img)
+                    img_url = re.sub(r'UY98_CR(.*?),0,67,98','UY268_CR\g<1>,0,182,268',img_url)
 
         title = ''
         imdbID = ''
@@ -913,7 +916,7 @@ def title_page(url):
             item.add_context_menu_items(context_items)
             items.append(item)
 
-    #href="?count=100&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
+    #href="?count=50&sort=moviemeter,asc&production_status=released&languages=en&release_date=2015,2016&boxoffice_gross_us=6.0,10.0&start=1&num_votes=100,&title_type=feature&page=2&ref_=adv_nxt"
     pagination_match = re.findall('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
     if pagination_match:
         next_page = 'http://www.imdb.com/search/title?'+pagination_match[-1].strip('?')
@@ -930,13 +933,13 @@ def title_page(url):
 
 @plugin.route('/feature')
 def feature():
-    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=feature'
+    url = 'http://www.imdb.com/search/title?count=50&production_status=released&title_type=feature'
     return title_page(url)
 
 
 @plugin.route('/tv_movie')
 def tv_movie():
-    url = 'http://www.imdb.com/search/title?count=100&production_status=released&title_type=tv_movie'
+    url = 'http://www.imdb.com/search/title?count=50&production_status=released&title_type=tv_movie'
     return title_page(url)
 
 @plugin.route('/export_searches')
@@ -976,7 +979,7 @@ def add_search():
     name = d.input("Name")
     if not name:
         return
-    url = d.input("URL",'http://www.imdb.com/search/title?count=100&user_rating=6.0,&production_status=released&title_type=feature')
+    url = d.input("URL",'http://www.imdb.com/search/title?count=50&user_rating=6.0,&production_status=released&title_type=feature')
     if not url:
         return
     searches[name] = url
@@ -2285,7 +2288,7 @@ def people_search():
     })
 
     for search in ["oscar_winners", "oscar_best_actor_nominees", "oscar_best_actor_winners", "oscar_best_actress_nominees", "oscar_best_actress_winners", "oscar_best_director_nominees", "oscar_best_director_winners", "oscar_best_supporting_actor_nominees", "oscar_best_supporting_actor_winners", "oscar_best_supporting_actress_nominees", "oscar_best_supporting_actress_winners"]:
-        url = "http://www.imdb.com/search/name?count=100&groups=%s&sort=%s" % (search,plugin.get_setting('people.sort'))
+        url = "http://www.imdb.com/search/name?count=50&groups=%s&sort=%s" % (search,plugin.get_setting('people.sort'))
         items.append(
         {
             'label': search.replace('_',' ').title(),
@@ -2360,7 +2363,7 @@ def index():
     items.append(
     {
         'label': "Browse",
-        'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=100&production_status=released"),
+        'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=50&production_status=released"),
         'thumbnail':get_icon_path('unknown'),
 
     })
