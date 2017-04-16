@@ -18,8 +18,13 @@ import threading
 import HTMLParser
 import json
 import sys
-
+from trakt import Trakt
 import SimpleDownloader as downloader
+
+if sys.version_info >= (2, 7):
+    from json import loads, dumps
+else:
+    from simplejson import loads, dumps
 
 
 plugin = Plugin()
@@ -748,6 +753,7 @@ def title_page(url):
         if not re.search(r'^mode-advanced">',lister_item):
             continue
         title_type = ''
+        trakt_type = ''
         #loadlate="http://ia.media-imdb.com/images/M/MV5BMjIyMTg5MTg4OV5BMl5BanBnXkFtZTgwMzkzMjY5NzE@._V1_UX67_CR0,0,67,98_AL_.jpg"
         img_url = ''
         img_match = re.search(r'<img.*?loadlate="(.*?)"', lister_item, flags=(re.DOTALL | re.MULTILINE))
@@ -775,6 +781,7 @@ def title_page(url):
         if title_match:
             year = title_match.group(1)
             title_type = "movie"
+            trakt_type = 'movies'
             info_type = 'extendedinfo'
             #log(year)
         else:
@@ -785,6 +792,7 @@ def title_page(url):
             if title_match:
                 year = title_match.group(1)
                 title_type = "tv_series"
+                trakt_type = 'shows'
                 info_type = 'extendedtvinfo'
                 #log(year)
             else:
@@ -802,6 +810,7 @@ def title_page(url):
             episode = "%s (%s)" % (episode_match.group(2), episode_match.group(3))
             year = episode_match.group(3)
             title_type = "tv_episode"
+            trakt_type = 'episodes'
 
         #Users rated this 6.1/10 (65,165 votes)
         rating = ''
@@ -858,6 +867,7 @@ def title_page(url):
             id = imdbID
             #log(title_type)
             if title_type == "tv_series" or title_type == "mini_series":
+                trakt_type = 'shows'
                 meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
@@ -882,6 +892,7 @@ def title_page(url):
             context_items.append(('Information', 'XBMC.Action(Info)'))
             if info_type:
                 context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
+                context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
             item.add_context_menu_items(context_items)
             items.append(item)
 
@@ -2266,6 +2277,48 @@ def people_search():
         })
 
     return items
+    
+def on_token_refreshed(response):
+    plugin.set_setting( "authorization", dumps(response))
+
+def authenticate():
+    dialog = xbmcgui.Dialog()
+    pin = dialog.input('Open a web browser at %s' % Trakt['oauth'].pin_url(), type=xbmcgui.INPUT_ALPHANUM)
+    if not pin:
+        return False
+    authorization = Trakt['oauth'].token_exchange(pin, 'urn:ietf:wg:oauth:2.0:oob')
+    if not authorization:
+        return False
+    plugin.set_setting( "authorization", dumps(authorization))
+    return True    
+    
+    
+@plugin.route('/add_to_trakt_watchlist/<type>/<imdb_id/<title>')
+def add_to_trakt_watchlist(type,imdb_id,title):
+    Trakt.configuration.defaults.app(
+        id=8835
+    )
+    Trakt.configuration.defaults.client(
+        id="aa1c239000c56319a64014d0b169c0dbf03f7770204261c9edbe8ae5d4e50332",
+        secret="250284a95fd22e389b565661c98d0f33ac222e9d03c43b5931e03946dbf858dc"
+    )
+    Trakt.on('oauth.token_refreshed', on_token_refreshed)
+    if not plugin.get_setting('authorization'):
+        if not authenticate():
+            return
+    authorization = loads(plugin.get_setting('authorization'))
+    with Trakt.configuration.oauth.from_response(authorization, refresh=True):
+        result = Trakt['sync/watchlist'].add({
+            type: [
+                {
+                    'ids': {
+                        'imdb': imdb_id
+                    }
+                }
+            ]
+        })
+        dialog = xbmcgui.Dialog()
+        dialog.notification("Trakt: add to watchlist",title)    
 
 
 @plugin.route('/')
