@@ -894,8 +894,11 @@ def title_page(url):
             item.add_stream_info('audio', {'codec': 'aac', 'language': 'en', 'channels': 2})
             context_items = []
             context_items.append(('Information', 'XBMC.Action(Info)'))
-            if info_type:
-                context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
+            try:
+                if info_type and xbmcaddon.Addon('script.extendedinfo'):
+                    context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
+            except:
+                pass
             context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
             try:
                 if title_type == 'movie' and xbmcaddon.Addon('plugin.video.couchpotato_manager'):
