@@ -759,7 +759,11 @@ def title_page(url):
         img_match = re.search(r'<img.*?loadlate="(.*?)"', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if img_match:
             img = img_match.group(1)
-            img_url = re.sub(r'U[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+            if plugin.get_setting('enhance') == 'true':
+                img_url = re.sub(r'U[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+            else:
+                img_url = re.sub(r'UX67_CR(.*?),0,67,98','UX182_CR\g<1>,0,182,268',img)
+                img_url = re.sub(r'UY98_CR(.*?),0,67,98','UY268_CR\g<1>,0,182,268',img_url)
 
         title = ''
         imdbID = ''
