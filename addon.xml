@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.imdb.search"
-version="0.0.6"
+version="0.0.7"
 name="IMDb Advanced Search"
 provider-name="primaeval">
 <requires>
@@ -15,7 +15,7 @@ provider-name="primaeval">
 </extension>
 <extension point="xbmc.addon.metadata">
   <summary lang="en">IMDb Advanced Search</summary>
-  <description lang="en">Combined IMDb Advanced Title and People Search. Meta4Kodi playback. Extended Info.</description>
+  <description lang="en">Combined IMDb Advanced Title and People Search. Meta4Kodi playback. Extended Info. Trakt. CouchPotato. Sickrage.</description>
   <disclaimer lang="en">.</disclaimer>
 </extension>
 </addon>
