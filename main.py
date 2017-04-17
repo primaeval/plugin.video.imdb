@@ -21,11 +21,6 @@ import sys
 from trakt import Trakt
 import SimpleDownloader as downloader
 
-if sys.version_info >= (2, 7):
-    from json import loads, dumps
-else:
-    from simplejson import loads, dumps
-
 
 plugin = Plugin()
 big_list_view = False
@@ -2299,7 +2294,7 @@ def people_search():
     return items
 
 def on_token_refreshed(response):
-    plugin.set_setting( "authorization", dumps(response))
+    plugin.set_setting( "authorization", json.dumps(response))
 
 def authenticate():
     dialog = xbmcgui.Dialog()
@@ -2309,7 +2304,7 @@ def authenticate():
     authorization = Trakt['oauth'].token_exchange(pin, 'urn:ietf:wg:oauth:2.0:oob')
     if not authorization:
         return False
-    plugin.set_setting( "authorization", dumps(authorization))
+    plugin.set_setting( "authorization", json.dumps(authorization))
     return True
 
 
@@ -2326,7 +2321,7 @@ def add_to_trakt_watchlist(type,imdb_id,title):
     if not plugin.get_setting('authorization'):
         if not authenticate():
             return
-    authorization = loads(plugin.get_setting('authorization'))
+    authorization = json.loads(plugin.get_setting('authorization'))
     with Trakt.configuration.oauth.from_response(authorization, refresh=True):
         result = Trakt['sync/watchlist'].add({
             type: [
