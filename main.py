@@ -927,7 +927,7 @@ def title_page(url):
 
     return items
 
-@plugin.route('/aickrage_addshow/<title>')
+@plugin.route('/sickrage_addshow/<title>')
 def sickrage_addshow(title):
     import resources.lib.common as common
     import resources.lib.settings as settings
