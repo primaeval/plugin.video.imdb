@@ -11,8 +11,21 @@
 <setting id="export" label="Show Import/Export Menu" type="bool" default="false" />
 <setting type="sep"/>
 <setting label="View Mode ID" type="number" id="view" default="50"/>
-<setting type="sep"/>
 <setting label="Enable Trakt" type="bool" id="trakt" default="true"/>
 </category>
-
+<category label="SickRage" >
+<setting type="lsep" label="SickRage"/>
+<setting id="SickRage IP" type="text" label="Server IP or Host" default="" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="SickRage Port" type="number" label="Server Port" default="" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="Use SSL" type="bool" label="Use SSL" default="false" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="ServerType" type="select" label="Server Type" values="SickRage|SickBeard" default="SickRage" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting label="Username / Password can be used to auto retrieve API key:" type="lsep" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="SickRage Username" type="text" label="Username" default="" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="SickRage Password" type="text" label="Password" default="" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting label="OR manually type or Copy/Paste API key:" type="lsep" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="SickRage API Key" type="text" label="API Key" default="" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="HistoryMax" type="slider" label="History List Length" default="16" range="4,1,50" option="int" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="ShowLog" type="bool" label="Show Log File Option in Main Menu" default="false" visible="!System.HasAddon(plugin.video.sickrage)"/>
+<setting id="ShowClearCache" type="bool" label="Show Clear Image Cache Option in Main Menu" default="false" visible="!System.HasAddon(plugin.video.sickrage)"/>
+</category>
 </settings>

@@ -720,7 +720,7 @@ def name_page(url):
         })
 
     match = re.search('<a href="(.*?)">Next',html)
-    log(match)
+    #log(match)
     if match:
         next_page = "http://www.imdb.com" + match.group(1)
         items.append(
@@ -903,11 +903,13 @@ def title_page(url):
                     context_items.append(('Add to Couch Potato', "XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add-by-id/%s)" % imdbID))
             except:
                 pass
-            try:
-                if title_type == "tv_series" or title_type == "mini_series" and xbmcaddon.Addon('plugin.video.sickrage'):
-                    context_items.append(('Add to Sickrage', "XBMC.RunPlugin(plugin://plugin.video.sickrage?action=addshow&&show_name=%s)" % title))
-            except:
-                pass
+            if title_type == "tv_series" or title_type == "mini_series":
+                try:
+                    if xbmcaddon.Addon('plugin.video.sickrage'):
+                        context_items.append(('Add to Sickrage', "XBMC.RunPlugin(plugin://plugin.video.sickrage?action=addshow&&show_name=%s)" % title))
+                except:
+                    context_items.append(('Add to Sickrage', 'XBMC.RunPlugin(%s)' % (plugin.url_for('sickrage_addshow', title=title))))
+
             item.add_context_menu_items(context_items)
             items.append(item)
 
@@ -915,7 +917,7 @@ def title_page(url):
     pagination_match = re.findall('<a href="([^"]*?&ref_=adv_nxt)"', html, flags=(re.DOTALL | re.MULTILINE))
     if pagination_match:
         next_page = 'http://www.imdb.com/search/title?'+pagination_match[-1].strip('?')
-        log(next_page)
+        #log(next_page)
         items.append(
         {
             'label': "Next Page >>",
@@ -925,6 +927,13 @@ def title_page(url):
 
     return items
 
+@plugin.route('/aickrage_addshow/<title>')
+def sickrage_addshow(title):
+    import resources.lib.common as common
+    import resources.lib.settings as settings
+    import resources.lib.sickbeard as sickbeard
+    import resources.lib.addshow as addshow
+    addshow.AddShow(title)
 
 @plugin.route('/feature')
 def feature():
@@ -2121,7 +2130,7 @@ def browse(url):
             names = []
             for id in ids:
                 names.append(people.get(id,id).encode("utf8"))
-                log(names)
+                #log(names)
             v = ','.join(names)
         if v:
             values.append(v)
