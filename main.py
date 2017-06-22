@@ -2272,6 +2272,22 @@ def browse(url):
     })
     return items + sorted(iitems, key=lambda x: x["label"])
 
+@plugin.route('/movie_search')
+def movie_search():
+    d = xbmcgui.Dialog()
+    who = d.input("Movie Title")
+    if who:
+        url = "http://www.imdb.com/search/title?count=50&production_status=released&title_type=feature,tv_movie&title=%s" % who.replace(' ','+')
+        return title_page(url)
+
+@plugin.route('/tv_search')
+def tv_search():
+    d = xbmcgui.Dialog()
+    who = d.input("TV Show Title")
+    if who:
+        url = "http://www.imdb.com/search/title?count=50&production_status=released&title_type=tv_series&title=%s" % who.replace(' ','+')
+        return title_page(url)
+
 @plugin.route('/name')
 def name():
     d = xbmcgui.Dialog()
@@ -2378,7 +2394,20 @@ def index():
         'thumbnail':get_icon_path('unknown'),
 
     })
+    items.append(
+    {
+        'label': "Simple Movie Title Search",
+        'path': plugin.url_for('movie_search'),
+        'thumbnail':get_icon_path('search'),
 
+    })
+    items.append(
+    {
+        'label': "Simple TV Show Title Search",
+        'path': plugin.url_for('tv_search'),
+        'thumbnail':get_icon_path('search'),
+
+    })
     items.append(
     {
         'label': "[COLOR dimgray]Add Search[/COLOR]",
