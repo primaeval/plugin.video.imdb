@@ -870,7 +870,8 @@ def title_page(url):
             #log(title_type)
             if title_type == "tv_series" or title_type == "mini_series":
                 trakt_type = 'shows'
-                meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
+                meta_url = "plugin://plugin.video.imdb.search/meta_tvdb/%s/%s" % (id,urllib.quote_plus(title.encode("utf8")))
+                #meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
                 vlabel = urllib.quote_plus(vlabel.encode("utf8"))
@@ -926,6 +927,26 @@ def title_page(url):
         })
 
     return items
+
+def get_tvdb_id(imdb_id):
+    tvdb_url = "http://thetvdb.com//api/GetSeriesByRemoteID.php?imdbid=%s" % imdb_id
+    r = requests.get(tvdb_url)
+    tvdb_html = r.text
+    tvdb_id = ''
+    tvdb_match = re.search(r'<seriesid>(.*?)</seriesid>', tvdb_html, flags=(re.DOTALL | re.MULTILINE))
+    if tvdb_match:
+        tvdb_id = tvdb_match.group(1)
+    return tvdb_id
+
+@plugin.route('/meta_tvdb/<imdb_id>/<title>')
+def meta_tvdb(imdb_id,title):
+    tvdb_id = get_tvdb_id(imdb_id)
+    #log((imdb_id,tvdb_id,title))
+    meta_url = "plugin://%s/tv/tvdb/%s" % (plugin.get_setting('catchup.plugin').lower(),tvdb_id)
+
+    item ={'label':title, 'path':meta_url, 'thumbnail': get_icon_path('meta')}
+    #TODO launch into Meta seasons view
+    return [item]
 
 @plugin.route('/sickrage_addshow/<title>')
 def sickrage_addshow(title):
