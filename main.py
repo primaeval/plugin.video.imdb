@@ -997,6 +997,18 @@ def add(name,url):
         return
     searches[name] = url
 
+@plugin.route('/add_subscription/<name>/<url>')
+def add_subscription(name,url):
+    subscriptions = plugin.get_storage('subscriptions')
+    subscriptions[name] = url
+    xbmc.executebuiltin('Container.Refresh')
+
+@plugin.route('/remove_subscription/<name>')
+def remove_subscription(name):
+    subscriptions = plugin.get_storage('subscriptions')
+    del subscriptions[name]
+    xbmc.executebuiltin('Container.Refresh')
+
 @plugin.route('/add_search')
 def add_search():
     searches = plugin.get_storage('searches')
@@ -1014,6 +1026,7 @@ def add_search():
 def remove_search(name):
     searches = plugin.get_storage('searches')
     del searches[name]
+    remove_subscription(name)
     xbmc.executebuiltin('Container.Refresh')
 
 @plugin.route('/rename_search/<name>')
@@ -2381,10 +2394,192 @@ def add_to_trakt_watchlist(type,imdb_id,title):
         dialog = xbmcgui.Dialog()
         dialog.notification("Trakt: add to watchlist",title)
 
+@plugin.route('/update_subscriptions')
+def update_subscriptions():
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
+
+    subscriptions = plugin.get_storage('subscriptions')
+    for w in sorted(subscriptions):
+        url = subscriptions[w]
+        subscription_movie_search(url,'all',"True")
+
+@plugin.route('/subscription_movie_search/<url>/<type>/<export>')
+def subscription_movie_search(url,type,export):
+    count = 0
+    while url:
+        html = requests.get(url,headers=headers).content
+        matches = re.findall('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',html,flags=(re.DOTALL | re.MULTILINE))
+        for match in matches:
+            imdb_id = match[0]
+            type = "movie"
+            title = match[1]
+            year = match[2]
+            if year.isdigit():
+                add_to_library(imdb_id, type, urllib.quote_plus(title), year)
+        match = re.search('<a href="(.*?)&ref_=adv_nxt"',html)
+        if match:
+            url = "http://www.imdb.com/search/title" + match.group(1)
+        count = count + 1
+        if count >= int(plugin.get_setting('search.pages')):
+            break
+
+@plugin.route('/add_to_library/<imdb_id>/<type>/<title>/<year>')
+def add_to_library(imdb_id,type,title,year):
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
+    if type == "series":
+        try: xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV/%s' % imdb_id)
+        except: pass
+        update_tv_series(imdb_id)
+    else:
+        if plugin.get_setting('duplicates') == "false" and existInKodiLibrary(imdb_id):
+            pass
+        else:
+            f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies/%s.strm' % (imdb_id), "wb")
+            movie_library_url = plugin.get_setting('movie.library.url')
+            meta_url = plugin.get_setting('movie.library')
+            if movie_library_url == "true" and meta_url:
+                meta_url = meta_url.replace("%Y",year)
+                meta_url = meta_url.replace("%I",imdb_id)
+                meta_url = meta_url.replace("%T",title)
+            else:
+                meta_url = 'plugin://%s/movies/play/imdb/%s/library' % (plugin.get_setting('catchup.plugin').lower(),imdb_id)
+            f.write(meta_url.encode("utf8"))
+            f.close()
+            f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies/%s.nfo' % (imdb_id), "wb")
+            str = "http://www.imdb.com/title/%s/" % imdb_id
+            f.write(str.encode("utf8"))
+            f.close()
+
+@plugin.route('/update_tv')
+def update_tv():
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
+    try:
+        last_run  = datetime.fromtimestamp(time.mktime(time.strptime(plugin.get_setting('update_tv_time').encode('utf-8', 'replace'), "%Y-%m-%d %H:%M:%S")))
+    except:
+        last_run = datetime(1970,1,1)
+    now = datetime.now()
+    next_day = last_run + timedelta(hours=24)
+    next_week = last_run + timedelta(days=7)
+    if now > next_week:
+        update_all = True
+        period = "all"
+    elif now > next_day:
+        update_all = False
+        period = "week"
+    else:
+        update_all = False
+        period = "day"
+
+    plugin.set_setting('update_tv_time', str(datetime.now()).split('.')[0])
+
+    if update_all == False:
+        url = 'http://thetvdb.com/api/77DDC569F4547C45/updates/updates_%s.zip' % period
+        results = requests.get(url)
+        data = results.content
+        try:
+            zip = zipfile.ZipFile(StringIO.StringIO(data))
+            z = zip.open('updates_%s.xml'  % period)
+            xml = z.read()
+        except:
+            return
+        match = re.compile(
+        '<Series><id>(.*?)</id><time>(.*?)</time></Series>',
+        flags=(re.DOTALL | re.MULTILINE)
+        ).findall(xml)
+        ids = [id[0] for id in match]
+    root = 'special://profile/addon_data/plugin.video.imdb.search/TV'
+    dirs, files = xbmcvfs.listdir(root)
+    for imdb_id in dirs:
+        if update_all:
+            update_tv_series(imdb_id)
+        else:
+            if imdb_id in ids:
+                update_tv_series(imdb_id)
+
+
+def update_tv_series(imdb_id):
+    tvdb_id = get_tvdb_id(imdb_id)
+    meta_url = "plugin://%s/tv/tvdb/%s" % (plugin.get_setting('catchup.plugin').lower(),tvdb_id)
+    f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/TV/%s/tvshow.nfo' % imdb_id,"wb")
+    str = "http://thetvdb.com/index.php?tab=series&id=%s" % tvdb_id
+    f.write(str.encode("utf8"))
+    f.close()
+    url = 'http://thetvdb.com/api/77DDC569F4547C45/series/%s/all/en.zip' % tvdb_id
+    results = requests.get(url)
+    data = results.content
+    try:
+        zip = zipfile.ZipFile(StringIO.StringIO(data))
+        z = zip.open('en.xml')
+        xml = z.read()
+    except:
+        return
+
+    match = re.search('<FirstAired>([0-9]{4}).*?</FirstAired>',xml)
+    if match:
+        series_year = match.group(1)
+    else:
+        series_year = "1900"
+    match = re.search('<SeriesName>(.*?)</SeriesName>',xml)
+    if match:
+        series_name = match.group(1)
+    else:
+        series_name = "unknown"
+
+    tv_past = plugin.get_setting('tv_past')
+    since = None
+    if tv_past == "0":
+        since = None
+    elif tv_past == "1":
+        since = timedelta(weeks=52)
+    elif tv_past == "2":
+        since = timedelta(weeks=4)
+    elif tv_past == "3":
+        since = timedelta(weeks=1)
+
+    match = re.compile(
+        '<Episode>.*?<id>(.*?)</id>.*?<EpisodeNumber>(.*?)</EpisodeNumber>.*?<FirstAired>(.*?)</FirstAired>.*?<SeasonNumber>(.*?)</SeasonNumber>.*?</Episode>',
+        flags=(re.DOTALL | re.MULTILINE)
+        ).findall(xml)
+    for id,episode,aired,season in match:
+        if (season == "0") and (plugin.get_setting('specials') == "false"):
+            continue
+        if aired:
+            match = re.search(r'([0-9]*?)-([0-9]*?)-([0-9]*)',aired)
+            if match:
+                year = match.group(1)
+                month = match.group(2)
+                day = match.group(3)
+                aired = datetime(year=int(year), month=int(month), day=int(day))
+                today = datetime.today()
+                if aired <= today:
+                    if not since or (aired > (today - since)):
+                        if plugin.get_setting('duplicates') == "false" and existInKodiLibrary(id,season,episode):
+                            pass
+                        else:
+                            tv_library_url = plugin.get_setting('tv.library.url')
+                            meta_url = plugin.get_setting('tv.library')
+                            if tv_library_url == "true" and meta_url:
+                                meta_url = meta_url.replace("%Y",series_year)
+                                meta_url = meta_url.replace("%I",imdb_id)
+                                meta_url = meta_url.replace("%T","unknown")
+                                meta_url = meta_url.replace("%W",urllib.quote_plus(series_name))
+                                meta_url = meta_url.replace("%S",season)
+                                meta_url = meta_url.replace("%E",episode)
+                                meta_url = meta_url.replace("%V",tvdb_id)
+                            else:
+                                meta_url = "plugin://%s/tv/play/%s/%d/%d/library" % (plugin.get_setting('catchup.plugin').lower(),tvdb_id,int(season),int(episode))
+                            f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/TV/%s/S%02dE%02d.strm' % (imdb_id,int(season),int(episode)),"wb")
+                            f.write(meta_url.encode("utf8"))
+                            f.close()
+
 
 @plugin.route('/')
 def index():
     searches = plugin.get_storage('searches')
+    subscriptions = plugin.get_storage('subscriptions')
     items = []
     for search in searches:
         context_items = []
@@ -2393,6 +2588,10 @@ def index():
         context_items.append(('[COLOR yellow]Remove[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('remove_search', name=search))))
         context_items.append(('[COLOR yellow]Duplicate[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('duplicate_search', name=search))))
         context_items.append(('[COLOR yellow]Browse[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('browse_search', name=search))))
+        if search in subscriptions:
+            context_items.append(('[COLOR yellow]Remove Subscription[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('remove_subscription', name=search))))
+        else:
+            context_items.append(('[COLOR yellow]Add Subscription[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_subscription', name=search, url=searches[search]))))
         items.append(
         {
             'label': search,
