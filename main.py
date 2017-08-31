@@ -736,6 +736,8 @@ def name_page(url):
 
 @plugin.route('/title_page/<url>')
 def title_page(url):
+    for i in re.findall('date\[(\d+)\]', url):
+        url = url.replace('date[%s]' % i, (datetime.datetime.now() - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
     global big_list_view
     big_list_view = True
     r = requests.get(url, headers=headers)
