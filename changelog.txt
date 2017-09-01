@@ -1,3 +1,8 @@
+version 0.0.13
+- update and clean library on Browse context menu
+- date[days] for days since today in release_date
+- eg release_date\start = date[90] to help hide cinema only movies
+
 version 0.0.12
 - library automation
 
