@@ -2396,8 +2396,8 @@ def add_to_trakt_watchlist(type,imdb_id,title):
         dialog = xbmcgui.Dialog()
         dialog.notification("Trakt: add to watchlist",title)
 
-@plugin.route('/update_subscriptions')
-def update_subscriptions():
+@plugin.route('/update_subscriptions/<kodi>')
+def update_subscriptions(kodi):
     xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
     xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
 
@@ -2405,6 +2405,9 @@ def update_subscriptions():
     for w in sorted(subscriptions):
         url = subscriptions[w]
         subscription_movie_search(url,'all',"True")
+
+    if kodi == "True":
+        xbmc.executebuiltin('UpdateLibrary(video)')
 
 @plugin.route('/subscription_movie_search/<url>/<type>/<export>')
 def subscription_movie_search(url,type,export):
@@ -2453,6 +2456,21 @@ def add_to_library(imdb_id,type,title,year):
             str = "http://www.imdb.com/title/%s/" % imdb_id
             f.write(str.encode("utf8"))
             f.close()
+
+def delete(path):
+    dirs, files = xbmcvfs.listdir(path)
+    for file in files:
+        xbmcvfs.delete(path+file)
+    for dir in dirs:
+        delete(path + dir + '/')
+    xbmcvfs.rmdir(path)
+
+@plugin.route('/reset_folders')
+def reset_folders():
+    for path in ['special://profile/addon_data/plugin.video.imdb.search/Movies/','special://profile/addon_data/plugin.video.imdb.search/TV/']:
+        delete(path)
+
+
 
 @plugin.route('/update_tv')
 def update_tv():
@@ -2601,13 +2619,15 @@ def index():
             'thumbnail':get_icon_path('search'),
             'context_menu': context_items,
         })
-
+    context_items = []
+    context_items.append(('[COLOR yellow]Update IMDb Library[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('update_subscriptions',kodi=True))))
+    context_items.append(('[COLOR yellow]Delete Movie/TV Folders[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('reset_folders'))))
     items.append(
     {
         'label': "Browse",
         'path': plugin.url_for('browse', url="http://www.imdb.com/search/title?count=50&production_status=released"),
         'thumbnail':get_icon_path('unknown'),
-
+        'context_menu': context_items,
     })
     items.append(
     {

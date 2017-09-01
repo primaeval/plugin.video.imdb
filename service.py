@@ -14,7 +14,7 @@ def Service():
     xbmc.log("[plugin.video.imdb.search] Background Update Starting...", xbmc.LOGNOTICE)
     time.sleep(1)
     xbmc.log('[IMDb Advanced Search] Updating Subscriptions', level=xbmc.LOGNOTICE)
-    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.imdb.search/update_subscriptions)')
+    xbmc.executebuiltin('RunPlugin(plugin://plugin.video.imdb.search/update_subscriptions/False)')
     if ADDON.getSetting('update.tv') == "true":
         xbmc.log('[IMDb Advanced Search] Updating TV Shows', level=xbmc.LOGNOTICE)
         xbmc.executebuiltin('RunPlugin(plugin://plugin.video.imdb.search/update_tv)')
