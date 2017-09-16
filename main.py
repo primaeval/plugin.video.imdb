@@ -736,6 +736,9 @@ def name_page(url):
 
 @plugin.route('/title_page/<url>')
 def title_page(url):
+    try: extendedinfo = xbmcaddon.Addon('script.extendedinfo')
+    except: extendedinfo = None
+
     for i in re.findall('date\[(\d+)\]', url):
         url = url.replace('date[%s]' % i, (datetime.datetime.now() - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
     global big_list_view
@@ -880,10 +883,29 @@ def title_page(url):
                 meta_url = "plugin://plugin.video.imdb.search/?action=episode&imdb_id=%s&episode_id=%s&title=%s" % (imdbID,episode_id,vlabel) #TODO
                 id = episode_id
             else:
-                meta_url = 'plugin://%s/movies/play/imdb/%s/select' % (plugin.get_setting('catchup.plugin').lower(),imdbID)
+                #meta_url = 'plugin://%s/movies/play/imdb/%s/select' % (plugin.get_setting('catchup.plugin').lower(),imdbID)
+                imdb_id = imdbID
+                xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies.temp')
+                f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies.temp/%s.strm' % (imdb_id), "wb")
+                movie_library_url = plugin.get_setting('movie.library.url')
+                meta_url = plugin.get_setting('movie.library')
+                if movie_library_url == "true" and meta_url:
+                    meta_url = meta_url.replace("%Y",year)
+                    meta_url = meta_url.replace("%I",imdb_id)
+                    meta_url = meta_url.replace("%T",title)
+                else:
+                    meta_url = 'plugin://%s/movies/play/imdb/%s/library' % (plugin.get_setting('catchup.plugin').lower(),imdb_id)
+                f.write(meta_url.encode("utf8"))
+                f.close()
+                #f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies.temp/%s.nfo' % (imdb_id), "wb")
+                #str = "http://www.imdb.com/title/%s/" % imdb_id
+                #f.write(str.encode("utf8"))
+                #f.close()
+                meta_url = 'special://profile/addon_data/plugin.video.imdb.search/Movies.temp/%s.strm' % (imdb_id)
             #log(meta_url)
         if imdbID:
             item = ListItem(label=title,thumbnail=img_url,path=meta_url)
+            item.set_is_playable(True)
             item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
             'year':year,'mediatype':'movie','rating':rating,'plot': plot,
             'mpaa': certificate,'cast': cast,'duration': runtime, 'votes': votes})
@@ -896,7 +918,7 @@ def title_page(url):
             context_items = []
             context_items.append(('Information', 'XBMC.Action(Info)'))
             try:
-                if info_type and xbmcaddon.Addon('script.extendedinfo'):
+                if info_type and extendedinfo:
                     context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
             except:
                 pass
@@ -2470,6 +2492,10 @@ def reset_folders():
     for path in ['special://profile/addon_data/plugin.video.imdb.search/Movies/','special://profile/addon_data/plugin.video.imdb.search/TV/']:
         delete(path)
 
+@plugin.route('/clear_temp')
+def clear_temp():
+    for path in ['special://profile/addon_data/plugin.video.imdb.search/Movies.temp/','special://profile/addon_data/plugin.video.imdb.search/TV.temp/']:
+        delete(path)
 
 
 @plugin.route('/update_tv')
@@ -2622,6 +2648,7 @@ def index():
     context_items = []
     context_items.append(('[COLOR yellow]Update IMDb Library[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('update_subscriptions',kodi=True))))
     context_items.append(('[COLOR yellow]Delete Movie/TV Folders[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('reset_folders'))))
+    context_items.append(('[COLOR yellow]Clear Temp Folder[/COLOR]', 'XBMC.RunPlugin(%s)' % (plugin.url_for('clear_temp'))))
     items.append(
     {
         'label': "Browse",
