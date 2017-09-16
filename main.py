@@ -2530,10 +2530,11 @@ def subscription_movie_search(url,type,export):
                         for actor in cast:
                             nfo = nfo + '<actor><name>%s</name></actor>\n' % actor
                         for genre in genres.split(','):
-                            nfo = nfo + '<genre>%s</genre>\n' % genre
+                            nfo = nfo + '<genre>%s</genre>\n' % genre.strip()
                         nfo = nfo + '<runtime>%s</runtime>\n' % runtime
                         nfo = nfo + '<mpaa>%s</mpaa>\n' % certificate
-                        nfo = nfo + '<ratings><rating><value>%s</value><votes>%s</votes></rating></ratings>\n' % (rating,votes)
+                        #nfo = nfo + '<ratings><rating name="default" max="10" default="true"><value>%s</value><votes>%s</votes></rating></ratings>\n' % (rating,votes)
+                        nfo = nfo + '<rating>%s</rating><votes>%s</votes>\n' % (rating,votes)
                         nfo = nfo + '</movie>\n'
                         add_to_library_direct(imdb_id, type, urllib.quote_plus(title), year, nfo)
                     else:
