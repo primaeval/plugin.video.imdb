@@ -2436,14 +2436,21 @@ def subscription_movie_search(url,type,export):
     count = 0
     while url:
         html = requests.get(url,headers=headers).content
-        matches = re.findall('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',html,flags=(re.DOTALL | re.MULTILINE))
-        for match in matches:
-            imdb_id = match[0]
-            type = "movie"
-            title = match[1]
-            year = match[2]
-            if year.isdigit():
-                add_to_library(imdb_id, type, urllib.quote_plus(title), year)
+        #log(html)
+
+        sections = html.split('ref_=adv_li_i')
+        for section in sections:
+            #log(section)
+            match = re.search('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',section,flags=(re.DOTALL | re.MULTILINE))
+            if match:
+                #log(match.groups())
+                imdb_id = match.group(1)
+                type = "movie"
+                title = match.group(2)
+                year = match.group(3)
+                #log((imdb_id,title,year))
+                if year.isdigit():
+                    add_to_library(imdb_id, type, urllib.quote_plus(title), year)
         match = re.search('<a href="(.*?)&ref_=adv_nxt"',html)
         if match:
             url = "http://www.imdb.com/search/title" + match.group(1)
