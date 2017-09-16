@@ -2433,6 +2433,8 @@ def update_subscriptions(kodi):
 
 @plugin.route('/subscription_movie_search/<url>/<type>/<export>')
 def subscription_movie_search(url,type,export):
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
     count = 0
     while url:
         html = requests.get(url,headers=headers).content
@@ -2441,6 +2443,63 @@ def subscription_movie_search(url,type,export):
         sections = html.split('ref_=adv_li_i')
         for section in sections:
             #log(section)
+            img_url = ''
+            img_match = re.search(r'<img.*?loadlate="(.*?)"', section, flags=(re.DOTALL | re.MULTILINE))
+            if img_match:
+                img = img_match.group(1)
+                img = re.sub(r'UX67_CR(.*?),0,67,98','UX182_CR\g<1>,0,182,268',img)
+                img = re.sub(r'UY98_CR(.*?),0,67,98','UY268_CR\g<1>,0,182,268',img)
+
+            #Users rated this 6.1/10 (65,165 votes)
+            rating = ''
+            votes = ''
+            rating_match = re.search(r'title="Users rated this (.+?)/10 \((.+?) votes\)', section, flags=(re.DOTALL | re.MULTILINE))
+            if rating_match:
+                rating = rating_match.group(1)
+                votes = rating_match.group(2)
+                votes = re.sub(',','',votes)
+
+            #<p class="text-muted">\nRusty Griswold takes his own family on a road trip to "Walley World" in order to spice things up with his wife and reconnect with his sons.</p>
+            plot = ''
+            plot_match = re.search(r'<p class="text-muted">(.+?)</p>', section, flags=(re.DOTALL | re.MULTILINE))
+            if plot_match:
+                plot = plot_match.group(1).strip()
+                plot = re.sub('<a.*?</a>','',plot)
+
+            #Stars:\n<a href="/name/nm0255124/?ref_=adv_li_st_0"\n>Tom Ellis</a>, \n<a href="/name/nm0314514/?ref_=adv_li_st_1"\n>Lauren German</a>, \n<a href="/name/nm1204760/?ref_=adv_li_st_2"\n>Kevin Alejandro</a>, \n<a href="/name/nm0940851/?ref_=adv_li_st_3"\n>D.B. Woodside</a>\n    </p>
+            cast = []
+            cast_match = re.search(r'<p class="">(.*?)</p>', section, flags=(re.DOTALL | re.MULTILINE))
+            if cast_match:
+                cast = cast_match.group(1)
+                cast_list = re.findall(r'<a.+?>(.+?)</a>', cast, flags=(re.DOTALL | re.MULTILINE))
+                cast = cast_list
+
+
+            #<span class="genre">\nAdventure, Comedy            </span>
+            genres = ''
+            genre_match = re.search(r'<span class="genre">(.+?)</span>', section, flags=(re.DOTALL | re.MULTILINE))
+            if genre_match:
+                genres = genre_match.group(1).strip()
+                #genre_list = re.findall(r'<a.+?>(.+?)</a>', genre)
+                #genres = ",".join(genre_list)
+
+            #class="runtime">99 min</span>
+            runtime = ''
+            runtime_match = re.search(r'class="runtime">(.+?) min</span>', section, flags=(re.DOTALL | re.MULTILINE))
+            if runtime_match:
+                runtime = int(re.sub(',','',runtime_match.group(1)))
+
+            sort = ''
+            #sort_match = re.search(r'<span class="sort"><span title="(.+?)"', section, flags=(re.DOTALL | re.MULTILINE))
+            #if sort_match:
+            #    sort = sort_match.group(1)
+
+            #<span class="certificate">PG</span>
+            certificate = ''
+            certificate_match = re.search(r'<span class="certificate">(.*?)</span>', section, flags=(re.DOTALL | re.MULTILINE))
+            if certificate_match:
+                certificate = certificate_match.group(1)
+
             match = re.search('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',section,flags=(re.DOTALL | re.MULTILINE))
             if match:
                 #log(match.groups())
@@ -2450,13 +2509,76 @@ def subscription_movie_search(url,type,export):
                 year = match.group(3)
                 #log((imdb_id,title,year))
                 if year.isdigit():
-                    add_to_library(imdb_id, type, urllib.quote_plus(title), year)
+                    if img:
+                        name = 'special://profile/addon_data/plugin.video.imdb.search/Movies/%s.jpg' % (imdb_id)
+                        exists = xbmcvfs.exists(name)
+                        #log((exists,name,img))
+                        if not exists:
+                            #log("COPY")
+                            xbmcvfs.copy(img,name)
+                    if plugin.get_setting('direct') == 'true':
+                        nfo = '<movie>\n'
+                        nfo = nfo + '<title>%s</title>\n' % title.replace('+',' ')
+                        nfo = nfo + '<id>%s</id>\n' % imdb_id
+                        nfo = nfo + '<year>%s</year>\n' % year
+                        thumb = 'special://profile/addon_data/plugin.video.imdb.search/Movies/%s.jpg' % (imdb_id)
+                        nfo = nfo + '<thumb>%s</thumb>\n' % thumb
+                        nfo = nfo + '<plot>%s</plot>\n' % plot
+                        for actor in cast:
+                            nfo = nfo + '<actor><name>%s</name></actor>\n' % actor
+                        for genre in genres.split(','):
+                            nfo = nfo + '<genre>%s</genre>\n' % genre
+                        nfo = nfo + '<runtime>%s</runtime>\n' % runtime
+                        nfo = nfo + '<mpaa>%s</mpaa>\n' % certificate
+                        nfo = nfo + '<ratings><rating><value>%s</value><votes>%s</votes></rating></ratings>\n' % (rating,votes)
+                        nfo = nfo + '</movie>\n'
+                        add_to_library_direct(imdb_id, type, urllib.quote_plus(title), year, nfo)
+                    else:
+                        add_to_library(imdb_id, type, title, year)
         match = re.search('<a href="(.*?)&ref_=adv_nxt"',html)
         if match:
             url = "http://www.imdb.com/search/title" + match.group(1)
         count = count + 1
         if count >= int(plugin.get_setting('search.pages')):
             break
+
+@plugin.route('/add_to_library_direct/<imdb_id>/<type>/<title>/<year>/<nfo>')
+def add_to_library_direct(imdb_id,type,title,year,nfo):
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
+    xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
+    if type == "series":
+        try: xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV/%s' % imdb_id)
+        except: pass
+        update_tv_series(imdb_id)
+    else:
+        if plugin.get_setting('duplicates') == "false" and existInKodiLibrary(imdb_id):
+            pass
+        else:
+            f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies/%s.strm' % (imdb_id), "wb")
+            movie_library_url = plugin.get_setting('movie.library.url')
+            meta_url = plugin.get_setting('movie.library')
+            if movie_library_url == "true" and meta_url:
+                meta_url = meta_url.replace("%Y",year)
+                meta_url = meta_url.replace("%I",imdb_id)
+                meta_url = meta_url.replace("%T",title)
+            else:
+                meta_url = 'plugin://%s/movies/play/imdb/%s/library' % (plugin.get_setting('catchup.plugin').lower(),imdb_id)
+            f.write(meta_url.encode("utf8"))
+            f.close()
+            f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/Movies/%s.nfo' % (imdb_id), "wb")
+            f.write(nfo)
+            '''
+            #str = "http://www.imdb.com/title/%s/" % imdb_id
+            f.write('<movie>\n')
+            f.write('<title>%s</title>\n' % title.replace('+',' '))
+            f.write('<id>%s</id>\n' % imdb_id)
+            f.write('<year>%s</year>\n' % year)
+            thumb = 'special://profile/addon_data/plugin.video.imdb.search/Movies/%s.jpg' % (imdb_id)
+            f.write('<thumb>%s</thumb>\n' % thumb)
+            f.write('</movie>\n')
+            #f.write(str.encode("utf8"))
+            '''
+            f.close()
 
 @plugin.route('/add_to_library/<imdb_id>/<type>/<title>/<year>')
 def add_to_library(imdb_id,type,title,year):
