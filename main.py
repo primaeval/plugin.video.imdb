@@ -2433,6 +2433,9 @@ def update_subscriptions(kodi):
 
 @plugin.route('/subscription_movie_search/<url>/<type>/<export>')
 def subscription_movie_search(url,type,export):
+    for i in re.findall('date\[(\d+)\]', url):
+        url = url.replace('date[%s]' % i, (datetime.datetime.now() - datetime.timedelta(days = int(i))).strftime('%Y-%m-%d'))
+
     xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/Movies')
     xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
     count = 0
