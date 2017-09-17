@@ -20,6 +20,8 @@
 <setting type="sep"/>
 <setting id="export" label="Show Import/Export Menu" type="bool" default="false" />
 <setting type="sep"/>
+<setting id="replace" label="Replace List in Browse" type="bool" default="true" />
+<setting type="sep"/>
 <setting label="View Mode ID" type="number" id="view" default="50"/>
 <setting label="Enable Trakt" type="bool" id="trakt" default="true"/>
 </category>

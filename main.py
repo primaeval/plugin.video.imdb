@@ -873,7 +873,9 @@ def title_page(url):
         if imdbID:
             id = imdbID
             #log(title_type)
+            playable = True
             if title_type == "tv_series" or title_type == "mini_series":
+                playable = False
                 trakt_type = 'shows'
                 meta_url = "plugin://plugin.video.imdb.search/meta_tvdb/%s/%s" % (id,urllib.quote_plus(title.encode("utf8")))
                 #meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
@@ -905,7 +907,7 @@ def title_page(url):
             #log(meta_url)
         if imdbID:
             item = ListItem(label=title,thumbnail=img_url,path=meta_url)
-            item.set_is_playable(True)
+            item.set_is_playable(playable)
             item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
             'year':year,'mediatype':'movie','rating':rating,'plot': plot,
             'mpaa': certificate,'cast': cast,'duration': runtime, 'votes': votes})
@@ -967,7 +969,7 @@ def meta_tvdb(imdb_id,title):
     tvdb_id = get_tvdb_id(imdb_id)
     #log((imdb_id,tvdb_id,title))
     meta_url = "plugin://%s/tv/tvdb/%s" % (plugin.get_setting('catchup.plugin').lower(),tvdb_id)
-
+    #log(meta_url)
     item ={'label':title, 'path':meta_url, 'thumbnail': get_icon_path('meta')}
     #TODO launch into Meta seasons view
     return [item]
@@ -1084,8 +1086,11 @@ def duplicate_search(name):
 def browse_search(name):
     searches = plugin.get_storage('searches')
     url = searches[name]
-    url = 'Container.Update(%s,replace)' % plugin.url_for('browse',url=url)
-    xbmc.executebuiltin(url)
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        url = 'Container.Update(%s,replace)' % plugin.url_for('browse',url=url)
+        xbmc.executebuiltin(url)
     #xbmc.executebuiltin("RunPlugin(%s)" % plugin.url_for('browse',url=url))
 
 @plugin.route('/edit_search/<name>')
@@ -1481,7 +1486,10 @@ def title_type(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/genres/<url>')
 def genres(url):
@@ -1514,7 +1522,10 @@ def genres(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/certificates/<url>')
 def certificates(url):
@@ -1547,7 +1558,10 @@ def certificates(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/countries/<url>')
 def countries(url):
@@ -1581,7 +1595,10 @@ def countries(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/groups/<url>')
 def groups(url):
@@ -1614,7 +1631,10 @@ def groups(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/languages/<url>')
 def languages(url):
@@ -1647,7 +1667,10 @@ def languages(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/num_votes/<url>')
 def num_votes(url):
@@ -1687,7 +1710,10 @@ def num_votes(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/release_date/<url>')
 def release_date(url):
@@ -1727,7 +1753,10 @@ def release_date(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/sort/<url>')
 def sort(url):
@@ -1760,7 +1789,10 @@ def sort(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/user_rating/<url>')
 def user_rating(url):
@@ -1809,7 +1841,10 @@ def user_rating(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/count/<url>')
 def count(url):
@@ -1838,7 +1873,10 @@ def count(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 
 @plugin.route('/plot/<url>')
@@ -1871,7 +1909,10 @@ def plot(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/production_status/<url>')
 def production_status(url):
@@ -1904,7 +1945,10 @@ def production_status(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/role/<url>')
 def role(url):
@@ -1943,7 +1987,10 @@ def role(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/keywords/<url>')
 def keywords(url):
@@ -1982,7 +2029,10 @@ def keywords(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/runtime/<url>')
 def runtime(url):
@@ -2022,7 +2072,10 @@ def runtime(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 
 @plugin.route('/locations/<url>')
@@ -2055,7 +2108,10 @@ def locations(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/companies/<url>')
 def companies(url):
@@ -2087,7 +2143,10 @@ def companies(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/title/<url>')
 def title(url):
@@ -2119,7 +2178,10 @@ def title(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/boxoffice_gross_us/<url>')
 def boxoffice_gross_us(url):
@@ -2158,7 +2220,10 @@ def boxoffice_gross_us(url):
     tail = '&'.join(kv)
     url = head+"?"+tail
 
-    xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
+    if plugin.get_setting('replace') != 'true':
+        return browse(url)
+    else:
+        xbmc.executebuiltin('Container.Update(%s,replace)' % plugin.url_for('browse',url=url))
 
 @plugin.route('/browse/<url>')
 def browse(url):
