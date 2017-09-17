@@ -2441,11 +2441,9 @@ def subscription_movie_search(url,type,export):
     count = 0
     while url:
         html = requests.get(url,headers=headers).content
-        #log(html)
 
         sections = html.split('ref_=adv_li_i')
         for section in sections:
-            #log(section)
             img_url = ''
             img_match = re.search(r'<img.*?loadlate="(.*?)"', section, flags=(re.DOTALL | re.MULTILINE))
             if img_match:
@@ -2505,19 +2503,15 @@ def subscription_movie_search(url,type,export):
 
             match = re.search('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',section,flags=(re.DOTALL | re.MULTILINE))
             if match:
-                #log(match.groups())
                 imdb_id = match.group(1)
                 type = "movie"
                 title = match.group(2)
                 year = match.group(3)
-                #log((imdb_id,title,year))
                 if year.isdigit():
                     if img:
                         name = 'special://profile/addon_data/plugin.video.imdb.search/Movies/%s.jpg' % (imdb_id)
                         exists = xbmcvfs.exists(name)
-                        #log((exists,name,img))
                         if not exists:
-                            #log("COPY")
                             xbmcvfs.copy(img,name)
                     if plugin.get_setting('direct') == 'true':
                         nfo = '<movie>\n'
