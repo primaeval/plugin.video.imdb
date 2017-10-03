@@ -951,7 +951,7 @@ def title_page(url):
             'path': plugin.url_for('title_page', url=next_page),
             'thumbnail': get_icon_path('nextpage'),
         })
-
+    xbmcplugin.setContent(int(sys.argv[1]), 'addons')
     return items
 
 def get_tvdb_id(imdb_id):
