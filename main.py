@@ -877,7 +877,7 @@ def title_page(url):
             if title_type == "tv_series" or title_type == "mini_series":
                 playable = False
                 trakt_type = 'shows'
-                meta_url = "plugin://plugin.video.imdb.search/meta_tvdb/%s/%s" % (id,urllib.quote_plus(title.encode("utf8")))
+                meta_url = "plugin://plugin.video.imdb.search/meta_tvdb/%s/%s" % (id,urllib.quote_plus(title))
                 #meta_url = "plugin://%s/tv/search_term/%s/1" % (plugin.get_setting('catchup.plugin').lower(),urllib.quote_plus(title))
             elif title_type == "tv_episode":
                 vlabel = "%s - %s" % (title, episode)
