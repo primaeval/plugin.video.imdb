@@ -30,6 +30,7 @@
 <setting type="sep"/>
 <setting id="search.pages" label="Max Search Pages" type="number"  default="1"/>
 <setting id="direct" label="Use nfo From Search Page" type="bool"  default="true"/>
+<setting id="duplicates" label="Allow Adding Duplicates to Library" type="bool" default="false" />
 <!--
 <setting id="tv_past" label="TV Show Add Period" type="enum" values="Forever|Year|Month|Week" />
 <setting id="specials" label="Include Special Episodes" type="bool" default="false" />

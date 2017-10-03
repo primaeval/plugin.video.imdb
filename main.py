@@ -2496,6 +2496,50 @@ def update_subscriptions(kodi):
     if kodi == "True":
         xbmc.executebuiltin('UpdateLibrary(video)')
 
+movieDict = {}
+showDict = {}
+def existInKodiLibrary(id, season="1", episode="1"):
+    global movieDict
+    global showDict
+    result = False
+    if 'tt' in id:
+        # Movies
+        if not movieDict:
+            query = {
+                'jsonrpc': '2.0',
+                'id': 0,
+                'method': 'VideoLibrary.GetMovies',
+                'params': {
+                    'properties': ['imdbnumber', 'file']
+                }
+            }
+            response = json.loads(xbmc.executeJSONRPC(json.dumps(query)))
+            movieDict = dict(
+                (movie['imdbnumber'], movie['file'])
+                for movie in response.get('result', {}).get('movies', [])
+            )
+        if movieDict.has_key(id):
+            result = True
+    else:
+        # TV Shows
+        if not showDict:
+            query = {
+                'jsonrpc': '2.0',
+                'id': 0,
+                'method': 'VideoLibrary.GetTVShows',
+                'params': {
+                    'properties': ['imdbnumber', 'file', 'season', 'episode']
+                }
+            }
+            response = json.loads(xbmc.executeJSONRPC(json.dumps(query)))
+            showDict = dict(
+                (show['imdbnumber'] + "-" + str(show['season']) + "-" + str(show['episode']), show['file'])
+                for show in response.get('result', {}).get('tvshows', [])
+            )
+        if showDict.has_key(id + "-" + str(season) + "-" + str(episode)):
+            result = True
+    return result
+
 @plugin.route('/subscription_movie_search/<url>/<type>/<export>')
 def subscription_movie_search(url,type,export):
     for i in re.findall('date\[(\d+)\]', url):
@@ -2569,6 +2613,8 @@ def subscription_movie_search(url,type,export):
             match = re.search('<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt"\n>(.*?)</a>\n    <span class="lister-item-year text-muted unbold">\((.*?)\)</span>',section,flags=(re.DOTALL | re.MULTILINE))
             if match:
                 imdb_id = match.group(1)
+                if plugin.get_setting('hide_duplicates') == "true" and existInKodiLibrary(imdb_id):
+                    continue
                 type = "movie"
                 title = match.group(2)
                 year = match.group(3)
