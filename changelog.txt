@@ -1,3 +1,6 @@
+version 0.0.15
+- trakt collection
+
 version 0.0.14
 - duplicates
 - strm files
