@@ -925,6 +925,7 @@ def title_page(url):
             except:
                 pass
             context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
+            context_items.append(('Add to Trakt Collection', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_collection', type=trakt_type, imdb_id=imdbID, title=title))))
             try:
                 if title_type == 'movie' and xbmcaddon.Addon('plugin.video.couchpotato_manager'):
                     context_items.append(('Add to Couch Potato', "XBMC.RunPlugin(plugin://plugin.video.couchpotato_manager/movies/add-by-id/%s)" % imdbID))
@@ -2482,6 +2483,33 @@ def add_to_trakt_watchlist(type,imdb_id,title):
         })
         dialog = xbmcgui.Dialog()
         dialog.notification("Trakt: add to watchlist",title)
+
+@plugin.route('/add_to_trakt_collection/<type>/<imdb_id>/<title>')
+def add_to_trakt_collection(type,imdb_id,title):
+    Trakt.configuration.defaults.app(
+        id=8835
+    )
+    Trakt.configuration.defaults.client(
+        id="aa1c239000c56319a64014d0b169c0dbf03f7770204261c9edbe8ae5d4e50332",
+        secret="250284a95fd22e389b565661c98d0f33ac222e9d03c43b5931e03946dbf858dc"
+    )
+    Trakt.on('oauth.token_refreshed', on_token_refreshed)
+    if not plugin.get_setting('authorization'):
+        if not authenticate():
+            return
+    authorization = json.loads(plugin.get_setting('authorization'))
+    with Trakt.configuration.oauth.from_response(authorization, refresh=True):
+        result = Trakt['sync/collection'].add({
+            type: [
+                {
+                    'ids': {
+                        'imdb': imdb_id
+                    }
+                }
+            ]
+        })
+        dialog = xbmcgui.Dialog()
+        dialog.notification("Trakt: add to collection",title)
 
 @plugin.route('/update_subscriptions/<kodi>')
 def update_subscriptions(kodi):
