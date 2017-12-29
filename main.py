@@ -615,7 +615,7 @@ def addon_id():
     return xbmcaddon.Addon().getAddonInfo('id')
 
 def log(v):
-    xbmc.log(repr(v))
+    xbmc.log(repr(v),xbmc.LOGERROR)
 
 #log(sys.argv)
 
@@ -693,6 +693,7 @@ def execute(url):
 
 @plugin.route('/name_page/<url>')
 def name_page(url):
+    #log(url)
     global big_list_view
     big_list_view = True
     #people = plugin.get_storage('people')
@@ -703,26 +704,32 @@ def name_page(url):
     html = r.content
     #html = HTMLParser.HTMLParser().unescape(html)
     #log(html)
-    match = re.findall('<a href="/name/(nm[0-9]*)/" title="(.*?)"><img src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
+    #<a href="/name/nm0001125"> <img alt="Benicio Del Toro"height="209"src="https://images-na.ssl-images-amazon.com/images/M/MV5BMTkzODQ4NzU1N15BMl5BanBnXkFtZTcwOTUzMzc5Mg@@._V1_UY209_CR7,0,140,209_AL_.jpg"
+    match = re.findall('<a href="/name/(nm[0-9]*).*?<img alt="(.*?)".*?src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
     items = []
     for (id,name,img) in match:
+        if name.startswith("IMDb"):
+            continue
         #log(name)
         #log(len(name))
         #name = name.decode('utf-8')
         #log(name)
         people[id] = name
         url = "http://www.imdb.com/search/title?count=50&production_status=released&role=%s" % id
-        img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+        #img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+        if int(plugin.get_setting('enhance')) > 0:
+            img = img.split('._')[0] + '.jpg'
         items.append({
             'label' :  name,
             'path' : plugin.url_for('browse',url=url),
             'thumbnail' : img
         })
-
-    match = re.search('<a href="(.*?)">Next',html)
+    #<a href="/search/name?groups=oscar_winner&start=51&ref_=rlm"\nclass="lister-page-next next-page" >
+    match = re.search('<a href="(/search/name[^"]*?)"\nclass="lister-page-next',html,flags=(re.DOTALL | re.MULTILINE))
     #log(match)
     if match:
         next_page = "http://www.imdb.com" + match.group(1)
+        #log(next_page)
         items.append(
         {
             'label': "Next Page >>",
@@ -758,16 +765,23 @@ def title_page(url):
         img_url = ''
         img_match = re.search(r'<img.*?loadlate="(.*?)"', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if img_match:
-            img = img_match.group(1)
+            img_url = img_match.group(1)
+            if int(plugin.get_setting('enhance')) > 0:
+                img_url = img_url.split('._')[0] + '.jpg'
+            #img_url = img.split('._')[0] + '.jpg'
+            '''
             if plugin.get_setting('enhance') == '2':
-                img_url = re.sub(r'U[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+                #img_url = re.sub(r'U[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
+                img_url = img.split('._')[0] + '.jpg'
             else:
                 if plugin.get_setting('enhance') == '0':
                     img_url = img
+                    img_url = img.split('._')[0] + '.jpg'
                 else:
                     img_url = re.sub(r'UX67_CR(.*?),0,67,98','UX182_CR\g<1>,0,182,268',img)
                     img_url = re.sub(r'UY98_CR(.*?),0,67,98','UY268_CR\g<1>,0,182,268',img_url)
-
+                    img_url = img.split('._')[0] + '.jpg'
+            '''
         title = ''
         imdbID = ''
         year = ''
