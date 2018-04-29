@@ -2495,6 +2495,16 @@ def add_to_trakt_watchlist(type,imdb_id,title):
                 }
             ]
         })
+        if type == "shows":
+            result = Trakt['sync/history'].add({
+                type: [
+                    {
+                        'ids': {
+                            'imdb': imdb_id
+                        }
+                    }
+                ]
+            })
         dialog = xbmcgui.Dialog()
         dialog.notification("Trakt: add to watchlist",title)
 
