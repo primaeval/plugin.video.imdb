@@ -20,6 +20,8 @@ import json
 import sys
 from trakt import Trakt
 import SimpleDownloader as downloader
+import zipfile
+import StringIO
 
 
 plugin = Plugin()
@@ -2601,6 +2603,7 @@ def subscription_movie_search(url,type,export):
     xbmcvfs.mkdirs('special://profile/addon_data/plugin.video.imdb.search/TV')
     count = 0
     while url:
+        #log(url)
         html = requests.get(url,headers=headers).content
 
         sections = html.split('ref_=adv_li_i')
@@ -2669,7 +2672,9 @@ def subscription_movie_search(url,type,export):
                     continue
                 type = "movie"
                 title = match.group(2)
+                #log(title)
                 year = match.group(3)
+                #log(year)
                 if year.isdigit():
                     if img:
                         name = 'special://profile/addon_data/plugin.video.imdb.search/Movies/%s.jpg' % (imdb_id)
@@ -2694,8 +2699,10 @@ def subscription_movie_search(url,type,export):
                         nfo = nfo + '<rating>%s</rating><votes>%s</votes>\n' % (rating,votes)
                         nfo = nfo + '</movie>\n'
                         add_to_library_direct(imdb_id, type, urllib.quote_plus(title), year, nfo)
-                    else:
-                        add_to_library(imdb_id, type, title, year)
+                else:
+                    type = "series"
+                    #log((imdb_id, type, title, year))
+                    add_to_library(imdb_id, type, title, year)
         match = re.search('<a href="(.*?)&ref_=adv_nxt"',html)
         if match:
             url = "http://www.imdb.com/search/title" + match.group(1)
@@ -2844,15 +2851,17 @@ def update_tv_series(imdb_id):
     f.write(str.encode("utf8"))
     f.close()
     url = 'http://thetvdb.com/api/77DDC569F4547C45/series/%s/all/en.zip' % tvdb_id
+    #log(url)
     results = requests.get(url)
     data = results.content
+    #log(data)
     try:
         zip = zipfile.ZipFile(StringIO.StringIO(data))
         z = zip.open('en.xml')
         xml = z.read()
     except:
         return
-
+    #log(xml)
     match = re.search('<FirstAired>([0-9]{4}).*?</FirstAired>',xml)
     if match:
         series_year = match.group(1)
@@ -2880,6 +2889,7 @@ def update_tv_series(imdb_id):
         flags=(re.DOTALL | re.MULTILINE)
         ).findall(xml)
     for id,episode,aired,season in match:
+        #log((id,episode,aired,season))
         if (season == "0") and (plugin.get_setting('specials') == "false"):
             continue
         if aired:
@@ -2888,9 +2898,10 @@ def update_tv_series(imdb_id):
                 year = match.group(1)
                 month = match.group(2)
                 day = match.group(3)
-                aired = datetime(year=int(year), month=int(month), day=int(day))
-                today = datetime.today()
+                aired = datetime.datetime(year=int(year), month=int(month), day=int(day))
+                today = datetime.datetime.today()
                 if aired <= today:
+                    #log((aired))
                     if not since or (aired > (today - since)):
                         if plugin.get_setting('duplicates') == "false" and existInKodiLibrary(id,season,episode):
                             pass
@@ -2907,6 +2918,7 @@ def update_tv_series(imdb_id):
                                 meta_url = meta_url.replace("%V",tvdb_id)
                             else:
                                 meta_url = "plugin://%s/tv/play/%s/%d/%d/library" % (plugin.get_setting('catchup.plugin').lower(),tvdb_id,int(season),int(episode))
+                            #log(("write"))
                             f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/TV/%s/S%02dE%02d.strm' % (imdb_id,int(season),int(episode)),"wb")
                             f.write(meta_url.encode("utf8"))
                             f.close()
