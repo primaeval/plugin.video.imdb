@@ -940,6 +940,7 @@ def title_page(url):
                     context_items.append(('Extended Info', "XBMC.RunScript(script.extendedinfo,info=%s,imdb_id=%s)" % (info_type,imdbID)))
             except:
                 pass
+            context_items.append(('Trailer', 'XBMC.RunPlugin(%s)' % (plugin.url_for('trailer', title=title))))
             context_items.append(('Add to Trakt Watchlist', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_watchlist', type=trakt_type, imdb_id=imdbID, title=title))))
             context_items.append(('Add to Trakt Collection', 'XBMC.RunPlugin(%s)' % (plugin.url_for('add_to_trakt_collection', type=trakt_type, imdb_id=imdbID, title=title))))
             try:
@@ -973,6 +974,12 @@ def title_page(url):
     else:
         xbmcplugin.setContent(int(sys.argv[1]), 'movies')
     return items
+
+@plugin.route('/trailer/<title>')
+def trailer(title):
+    cmd = 'ActivateWindow(10025,"plugin://plugin.video.youtube/kodion/search/query/?q=%strailer",return)' % title
+    xbmc.executebuiltin(cmd)
+
 
 def get_tvdb_id(imdb_id):
     tvdb_url = "http://thetvdb.com//api/GetSeriesByRemoteID.php?imdbid=%s" % imdb_id
