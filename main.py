@@ -707,15 +707,22 @@ def name_page(url):
     #html = HTMLParser.HTMLParser().unescape(html)
     #log(html)
     #<a href="/name/nm0001125"> <img alt="Benicio Del Toro"height="209"src="https://images-na.ssl-images-amazon.com/images/M/MV5BMTkzODQ4NzU1N15BMl5BanBnXkFtZTcwOTUzMzc5Mg@@._V1_UY209_CR7,0,140,209_AL_.jpg"
-    match = re.findall('<a href="/name/(nm[0-9]*).*?<img alt="(.*?)".*?src="(.*?)"',html,flags=(re.DOTALL | re.MULTILINE))
     items = []
-    for (id,name,img) in match:
-        if name.startswith("IMDb"):
-            continue
+    lister_items = html.split('lister-item ')
+    for lister_item in lister_items[1:]:
+        id = re.search('nm[0-9]+',lister_item)
+        if id:
+            id = id.group(0)
+        #log(id)
+        name = re.search('alt="(.*?)"',lister_item)
+        if name:
+            name = name.group(1)
         #log(name)
-        #log(len(name))
-        #name = name.decode('utf-8')
-        #log(name)
+        img = re.search('src="(.*?)"',lister_item)
+        if img:
+            img = img.group(1)
+        #log(img)
+
         people[id] = name
         url = "http://www.imdb.com/search/title?count=50&production_status=released&role=%s" % id
         #img = re.sub(r'S[XY].*_.jpg','SX344_.jpg',img) #NOTE 344 is Confluence List View width
