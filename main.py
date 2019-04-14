@@ -761,11 +761,15 @@ def title_page(url):
     big_list_view = True
     r = requests.get(url, headers=headers)
     html = r.content
+    f = xbmcvfs.File('special://profile/addon_data/plugin.video.imdb.search/imdb.html','wb')
+    f.write(html)
+    f.close()
     #html = HTMLParser.HTMLParser().unescape(html)
 
     lister_items = html.split('<div class="lister-item ')
     items = []
     for lister_item in lister_items:
+        #log(lister_item)
         if not re.search(r'^mode-advanced">',lister_item):
             continue
         title_type = ''
@@ -795,7 +799,7 @@ def title_page(url):
         imdbID = ''
         year = ''
         #<a href="/title/tt1985949/?ref_=adv_li_tt"\n>Angry Birds</a>
-        title_match = re.search(r'<a href="/title/(tt[0-9]*)/\?ref_=adv_li_tt".>(.*?)</a>', lister_item, flags=(re.DOTALL | re.MULTILINE))
+        title_match = re.search(r'<a href="/title/(tt[0-9]*)/".>([^<]*?)</a>', lister_item, flags=(re.DOTALL | re.MULTILINE))
         if title_match:
             imdbID = title_match.group(1)
             title = title_match.group(2)
