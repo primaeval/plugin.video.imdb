@@ -24,6 +24,7 @@
 <setting type="sep"/>
 <setting label="View Mode ID" type="number" id="view" default="50"/>
 <setting label="Enable Trakt" type="bool" id="trakt" default="true"/>
+<setting label="Hide Trakt Watched Movies" type="bool" id="trakt.hide.movies" default="false"/>
 </category>
 <category label="Automation">
 

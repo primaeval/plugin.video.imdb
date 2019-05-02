@@ -617,7 +617,7 @@ def addon_id():
     return xbmcaddon.Addon().getAddonInfo('id')
 
 def log(v):
-    xbmc.log(repr(v),xbmc.LOGERROR)
+    xbmc.log(repr(('[plugin.video.imdb.search]',v)),xbmc.LOGERROR)
 
 #log(sys.argv)
 
@@ -752,6 +752,10 @@ def name_page(url):
 
 @plugin.route('/title_page/<url>')
 def title_page(url):
+    watched = []
+    if plugin.get_setting('trakt.hide.movies', bool):
+        watched = trakt_get_watched()
+
     try: extendedinfo = xbmcaddon.Addon('script.extendedinfo')
     except: extendedinfo = None
 
@@ -933,7 +937,11 @@ def title_page(url):
                 meta_url = 'special://profile/addon_data/plugin.video.imdb.search/Movies.temp/%s.strm' % (imdb_id)
             #log(meta_url)
         if imdbID:
-            item = ListItem(label=title,thumbnail=img_url,path=meta_url)
+            label = title
+            if imdbID in watched:
+                continue
+                #label = "[I]%s[/I]" % title
+            item = ListItem(label=label, thumbnail=img_url, path=meta_url)
             item.set_is_playable(playable)
             item.set_info('video', {'title': vlabel, 'genre': genres,'code': imdbID,
             'year':year,'mediatype':'movie','rating':rating,'plot': plot,
@@ -2550,6 +2558,27 @@ def add_to_trakt_collection(type,imdb_id,title):
         })
         dialog = xbmcgui.Dialog()
         dialog.notification("Trakt: add to collection",title)
+
+
+def trakt_get_watched():
+    Trakt.configuration.defaults.app(
+        id=8835
+    )
+    Trakt.configuration.defaults.client(
+        id="aa1c239000c56319a64014d0b169c0dbf03f7770204261c9edbe8ae5d4e50332",
+        secret="250284a95fd22e389b565661c98d0f33ac222e9d03c43b5931e03946dbf858dc"
+    )
+    Trakt.on('oauth.token_refreshed', on_token_refreshed)
+    if not plugin.get_setting('authorization'):
+        if not authenticate():
+            return
+    authorization = json.loads(plugin.get_setting('authorization'))
+    with Trakt.configuration.oauth.from_response(authorization, refresh=True):
+        movies = Trakt['sync/watched'].movies()
+        #log(movies)
+        watched = [x[1] for x in movies]
+        #log(watched)
+        return watched
 
 @plugin.route('/update_subscriptions/<kodi>')
 def update_subscriptions(kodi):
