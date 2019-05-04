@@ -1165,7 +1165,7 @@ def edit_search(name):
                 if 'certificates' in params:
                     del params['certificates']
         elif fields[action] == 'count':
-            count = ["50","100"]
+            count = ["50","100","250"]
             which = d.select('count',count)
             if which > -1:
                 params['count'] = count[which]
@@ -1899,7 +1899,7 @@ def count(url):
         head = url
 
     d = xbmcgui.Dialog()
-    count = ["50","100"]
+    count = ["50","100","250"]
     which = d.select('count',count)
     if which > -1:
         params['count'] = count[which]
